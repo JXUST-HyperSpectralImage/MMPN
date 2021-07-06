@@ -222,12 +222,72 @@ class HyperX(torch.utils.data.Dataset):
         # 取出中心点像素的标签
         if self.center_pixel and self.patch_size > 1:
             label = label[self.patch_size // 2, self.patch_size // 2]
-        # Remove unused dimensions when we work with invidual spectrums
-        elif self.patch_size == 1:
-            data = data[:, 0, 0]
-            label = label[0, 0]
-
         # Add a fourth dimension for 3D CNN
-        data = data.unsqueeze(0)
+#        data = data.unsqueeze(0)
 
         return data, label
+        
+#class TestLoader(torch.utils.data.Dataset):
+#    """ Generic class for a hyperspectral scene """
+#
+#    def __init__(self, data, gt, **hyperparams):
+#        """
+#        Args:
+#            data: 3D hyperspectral image
+#            gt: 2D array of labels
+#            patch_size: int, size of the spatial neighbourhood
+#            center_pixel: bool, set to True to consider only the label of the
+#                          center pixel
+#            data_augmentation: bool, set to True to perform random flips
+#            supervision: 'full' or 'semi' supervised algorithms
+#        """
+#        super(TestLoader, self).__init__()
+#        self.data = data
+#        self.label = gt
+#        self.dataset_name = hyperparams['dataset']
+#        self.patch_size = hyperparams['patch_size']  # 邻域大小
+#        self.ignored_labels = set(hyperparams['ignored_labels'])  # 未标记类别
+#        self.center_pixel = hyperparams['center_pixel']
+##        self.data = np.pad(data, ((self.patch_size // 2, self.patch_size // 2), (self.patch_size // 2, self.patch_size // 2), (0, 0)), 'reflect')
+#        # Fully supervised : use all pixels with label not ignored
+#        # 只选取标记了类别的像素点作为训练样本
+#        mask = np.ones_like(gt)
+#        for l in self.ignored_labels:
+#            mask[gt == l] = 0
+#        x_pos, y_pos = np.nonzero(mask)
+#        p = self.patch_size // 2
+#        # 检查窗口是否超出边界，超出就丢弃
+#        self.indices = np.array([(x, y) for x, y in zip(x_pos, y_pos) if
+#                                 x > p and x < data.shape[0] - p and y > p and y < data.shape[1] - p])
+#        self.labels = [self.label[x, y] for x, y in self.indices]
+#        print(f'Data loader sample numbers:{len(self.labels)}')
+#        self.count = len(self.labels) // 4
+#        # 打乱顺序
+#        np.random.shuffle(self.indices)
+#
+#    def __len__(self):
+#        return len(self.indices)
+#
+#    def __getitem__(self, i):
+#        x, y = self.indices[i]
+#        x1, y1 = x - self.patch_size // 2, y - self.patch_size // 2
+#        x2, y2 = x1 + self.patch_size, y1 + self.patch_size
+#
+#        data = self.data[x1:x2, y1:y2]
+#        label = self.label[x1:x2, y1:y2]
+#
+#        # Copy the data into numpy arrays (PyTorch doesn't like numpy views)
+#        data = np.asarray(np.copy(data).transpose((2, 0, 1)), dtype='float32')
+#        label = np.asarray(np.copy(label), dtype='int64')
+#
+#        # Load the data into PyTorch tensors
+#        data = torch.from_numpy(data)
+#        label = torch.from_numpy(label)
+#        # Extract the center label if needed
+#        # 取出中心点像素的标签
+#        if self.center_pixel and self.patch_size > 1:
+#            label = label[self.patch_size // 2, self.patch_size // 2]
+#        # Add a fourth dimension for 3D CNN
+##        data = data.unsqueeze(0)
+#
+#        return data, label, x, y

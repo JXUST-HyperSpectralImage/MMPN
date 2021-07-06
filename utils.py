@@ -7,7 +7,33 @@ from sklearn.model_selection import train_test_split
 import logging
 import seaborn as sns
 import spectral
+import os
+from sklearn.decomposition import PCA
 
+
+def PCA_data(data, dataset, components=10):
+    model_dir = 'pca_data/'+dataset+'.npy'
+    if not os.path.isfile(model_dir):
+#        os.makedirs(model_dir, exist_ok=True)
+        new_datawithlabel_list = []
+        for i in range(data.shape[0]):
+            for j in range(data.shape[1]):
+                c2l = list(data[i][j])
+                c2l.append(data[i][j])
+                new_datawithlabel_list.append(c2l)
+        new_datawithlabel_array = np.array(new_datawithlabel_list)
+        pca = PCA(n_components=components)
+        pca.fit(new_datawithlabel_array[:,:-1],new_datawithlabel_array[:,-1])
+        pca_data = pca.transform(new_datawithlabel_array[:,:-1])
+        new_pca_data = np.zeros((data.shape[0],data.shape[1],components))
+        for i in range(data.shape[0]):
+            for j in range(data.shape[1]):
+                new_pca_data[i][j] = pca_data[i*data.shape[1]+j]
+        np.save(file=model_dir, arr=new_pca_data)
+    else:
+        new_pca_data = np.load(file=model_dir)
+    return new_pca_data
+    
 
 def logger(logfile_name='logs/logs.log'):
     # 先创建记录器
@@ -215,16 +241,17 @@ def sliding_window(image, step=10, window_size=(20, 20), with_data=True):
     # slide a window across the image
     w, h = window_size
     W, H = image.shape[:2]
-#    offset_w = (W - w) % step
-#    offset_h = (H - h) % step
-    for x in range(0, W - w, step):
-        if x + w > W:
-            x = W - w
-        for y in range(0, H - h, step):
-            if y + h > H:
-                y = H - h
+    p = w // 2
+    for x in range(p, W - p, step):
+        if x + p > W:
+            x = W - p - 1
+        for y in range(p, H - p, step):
+            if y + p > H:
+                y = H - p - 1
+            x1, y1 = x - p, y - p
+            x2, y2 = x1 + w, y1 + h
             if with_data:
-                yield image[x:x + w, y:y + h], x, y, w, h
+                yield image[x1:x2, y1:y2], x1, y1, w, h
             else:
                 yield x, y, w, h
 

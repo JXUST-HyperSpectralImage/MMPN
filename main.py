@@ -1,11 +1,10 @@
 import torch
 from torch.utils import data
 from torchsummary import summary
-
 from dataset import get_dataset, HyperX
 from RepMLP import get_model
 from train import test, train
-from utils import get_device, sample_gt, compute_imf_weights, metrics, logger, display_dataset, display_goundtruth
+from utils import get_device, sample_gt, compute_imf_weights, metrics, logger, display_dataset, display_goundtruth, PCA_data
 import argparse
 import numpy as np
 import warnings
@@ -26,7 +25,7 @@ parser.add_argument('--dataset', type=str, default='IndianPines',
                          "KSC"
                          "Botswana"
                          "Salinas")
-parser.add_argument('--model', type=str, default='MI3DCNN',
+parser.add_argument('--model', type=str, default='RepMLP',
                     help="Model to train.")
 parser.add_argument('--folder', type=str, default='../dataset/',
                     help="Folder where to store the "
@@ -61,10 +60,10 @@ group_train.add_argument('--save_epoch', type=int, default=5,
 group_train.add_argument('--patch_size', type=int,
                          help="patch size of  spectral feature extration model"
                               "(optional, if absent will be set by the model)")
-group_train.add_argument('--kernel_nums', type=int,
-                         help="kernel nums of MI3DCNN spectral extraction feature moudle")
-group_train.add_argument('--kernel_depth', type=int, default=7,
-                         help="kernel depth of MI3DCNN spectral extraction feature moudle")
+group_train.add_argument('--patch_bands', type=int,
+                         help="Segment the HSI data in the spectral dimension according to the size of patch_bands")
+group_train.add_argument('--pca_bands', type=int,
+                         help="Spectral bands after PCA")
 group_train.add_argument('--lr', type=float,
                          help="Learning rate, set by the model if not specified.")
 group_train.add_argument('--batch_size', type=int,
@@ -119,6 +118,9 @@ hyperparams = vars(args)
 
 # Load the dataset
 img, gt, LABEL_VALUES, IGNORED_LABELS = get_dataset(logger, DATASET, FOLDER)
+# 根据光谱划分的波段长度对原始数据进行填充
+if hyperparams['pca_bands'] is not None:
+    img = PCA_data(img, DATASET, components=hyperparams['pca_bands'])
 for i in range(RUN):
     if TRAIN_GT and TEST_GT:
         train_gt_file = '../dataset/' + DATASET + '/train_gt' + str(0) + '.npy'
@@ -130,18 +132,14 @@ for i in range(RUN):
         logger.info("Training Percentage:{:.2}".format(np.count_nonzero(train_gt) / np.count_nonzero(gt)))
         test_gt = np.load(test_gt_file, 'r')
         logger.info("Load train_gt successfully!(PATH:{})".format(test_gt_file))
-        logger.info("{} samples selected for training(over {})".format(np.count_nonzero(test_gt), np.count_nonzero(gt)))
+        logger.info("{} samples selected for test(over {})".format(np.count_nonzero(test_gt), np.count_nonzero(gt)))
     else:
         train_gt_file = '../dataset/' + DATASET + '/train_gt' + str(i) + '.npy'
         test_gt_file = '../dataset/' + DATASET + '/test_gt' + str(i) + '.npy'
         # Sample random training spectra
         train_gt, test_gt = sample_gt(gt, TRAINING_PERCENTAGE, mode=SAMPLING_MODE)
-        #        np.save(train_gt_file, train_gt)
         logger.info("Save train_gt successfully!(PATH:{})".format(train_gt_file))
-        #        np.save(test_gt_file, test_gt)
         logger.info("Save test_gt successfully!(PATH:{})".format(test_gt_file))
-    #    logger.info("{} samples selected for training(over {})".format(np.count_nonzero(train_gt), np.count_nonzero(gt)))
-    #    logger.info("{} samples selected for training(over {})".format(np.count_nonzero(test_gt), np.count_nonzero(gt)))
     logger.info("Running an experiment with the {} model, RUN [{}/{}]".format(MODEL, i + 1, RUN))
     logger.info("RUN:{}".format(i))
     # Open visdom server
@@ -152,12 +150,8 @@ for i in range(RUN):
     else:
         vis = visdom.Visdom(
             env=DATASET + ' ' + MODEL + ' ' + 'PATCH_SIZE' + str(PATCH_SIZE) + ' ' + 'EPOCH' + str(EPOCH))
-    #        vis = visdom.Visdom(env='TRAINING_PERCENTAGE' + str(TRAINING_PERCENTAGE*100) + '% ' + DATASET + ' ' + MODEL + ' ' + 'PATCH_SIZE' + str(PATCH_SIZE) + ' ' + 'EPOCH' + str(EPOCH))
     if not vis.check_connection:
         print("Visdom is not connected. Did you run 'python -m visdom.server' ?")
-
-    # Show dataset
-    # display_dataset(img=img, vis=vis)
 
     # Number of classes
     N_CLASSES = len(LABEL_VALUES)
@@ -168,20 +162,12 @@ for i in range(RUN):
         {'n_classes': N_CLASSES, 'n_bands': N_BANDS, 'ignored_labels': IGNORED_LABELS, 'device': CUDA_DEVICE})
     hyperparams = dict((k, v) for k, v in hyperparams.items() if v is not None)
 
-    # Sample random training spectra
-    #    train_gt, test_gt = sample_gt(gt, train_size=TRAINING_PERCENTAGE, mode=SAMPLING_MODE, sample_nums=SAMPLE_NUMS)
-
-    #    logger.info("{} samples selected for training(over {})".format(np.count_nonzero(train_gt), np.count_nonzero(gt)))
-
     # Get model
     model, optimizer, loss, hyperparams = get_model(DATASET, **hyperparams)
 
     # Sample random validation spectral
     val_gt, _ = sample_gt(gt, train_size=hyperparams['validation_percentage'], mode=SAMPLING_MODE,
                           sample_nums=SAMPLE_NUMS)
-
-    # Show groundtruth
-    #    display_goundtruth(gt=gt, vis=vis, caption = "Training {} samples selected".format(np.count_nonzero(gt)))
 
     logger.info("{} samples selected for validation(over {})".format(np.count_nonzero(val_gt), np.count_nonzero(gt)))
 
@@ -203,7 +189,7 @@ for i in range(RUN):
     val_dataset = HyperX(img, val_gt, **hyperparams)
     val_loader = data.DataLoader(val_dataset,
                                  batch_size=hyperparams['batch_size'])
-    logger.info("Validation dataloader:{}".format(len(val_loader)))
+    logger.info("Validation dataloader:{}".format(len(train_loader)))
 
     logger.info('----------Training parameters----------')
 
@@ -214,34 +200,39 @@ for i in range(RUN):
     with torch.no_grad():
         for input, _ in train_loader:
             break
-        summary(model.to(hyperparams['device']), input.size()[1:])
-
+        summary(model.to(hyperparams['device']), input)
+        
+    total = sum([param.nelement() for param in model.parameters()])
+    logger.info("Number of parameter: {}==>{:.2f}M".format(total, total / 1e6))
+    
     if CHECKPOINT is not None:
         logger.info('Load model {} successfully!!!'.format(CHECKPOINT))
         model.load_state_dict(torch.load(CHECKPOINT))
-    try:
-        logger.info('----------Training process----------')
-        train(logger=logger, net=model, optimizer=optimizer, criterion=loss, train_loader=train_loader,
-              epoch=hyperparams['epoch'], save_epoch=hyperparams['save_epoch'], scheduler=hyperparams['scheduler'],
-              device=hyperparams['device'], supervision=hyperparams['supervision'], val_loader=val_loader,
-              vis_display=vis, RUN=i)
-    except KeyboardInterrupt:
-        # Allow the user to stop the training
-        pass
-    #    probabilities = test(model, img, hyperparams)
-    prediction = test(model, img, hyperparams)
-    #    prediction = np.argmax(probabilities, axis=-1)
+    else:
+        try:
+            logger.info('----------Training process----------')
+            train(logger=logger, net=model, optimizer=optimizer, criterion=loss, train_loader=train_loader,
+                  epoch=hyperparams['epoch'], save_epoch=hyperparams['save_epoch'], scheduler=hyperparams['scheduler'],
+                  device=hyperparams['device'], supervision=hyperparams['supervision'], val_loader=val_loader,
+                  vis_display=vis, RUN=i)
+        except KeyboardInterrupt:
+            # Allow the user to stop the training
+            pass
+    prediction = np.asarray(test(model, img, hyperparams), np.uint8)
+#    np.savetxt('prediction', prediction, fmt="%d")
     display_goundtruth(gt=prediction, vis=vis, caption="Testing ground truth(full)" + "RUN{}".format(i))
-
     results = metrics(prediction, test_gt, ignored_labels=hyperparams['ignored_labels'], n_classes=N_CLASSES)
     mask = np.zeros(gt.shape, dtype='bool')
     for l in IGNORED_LABELS:
         mask[gt == l] = True
     prediction[mask] = 0
+#    filename = open('prediction.txt', 'w')
+#    filename.write(str(filename))
+#    filename.close()
+#    np.savetxt('prediction', prediction)
     display_goundtruth(gt=prediction, vis=vis, caption="Testing ground truth(semi)" + "RUN{}".format(i))
 
     logger.info('The network training successfully!!!')
-
     logger.info('----------Training result----------')
     logger.info("\nConfusion matrix:\n{}".format(results['Confusion matrix']))
     logger.info("\nAccuracy:\n{}".format(results['Accuracy']))

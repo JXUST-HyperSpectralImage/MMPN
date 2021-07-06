@@ -17,14 +17,14 @@ def fuse_bn(conv_or_fc, bn):
 
 
 class RepMLP(nn.Module):
-    def __init__(self, in_channels,
+    def __init__(self, n_classes, in_channels,
                  H, W, patch_bands,
                  reparam_conv_k=None,
                  fc1_fc2_reduction=1,
                  fc3_groups=1,
                  deploy=False, ):
         super().__init__()
-
+        self.n_classes = n_classes
         self.C = in_channels
         # self.O = out_channels
         self.fc3_groups = fc3_groups
@@ -35,27 +35,33 @@ class RepMLP(nn.Module):
 
         # TODO: use padding if not divisible. With padding, removing the BN after AvgPool will be a bit tricky. My suggestion is to keep it.
         assert self.C % self.b == 0
-        self.target_shape = (-1, self.b, self.H, self.W)
+        self.target_shape = (-1, self.C, self.H, self.W)
 
         self.deploy = deploy
 
-        self.need_global_perceptron = (C != patch_bands)
+        self.need_global_perceptron = (self.C != patch_bands)
+        print('need_global_perceptron==>', self.need_global_perceptron)
         if self.need_global_perceptron:
-            internal_neurons = int(self.H * self.W * self.c_parts // fc1_fc2_reduction)
+            internal_neurons = int(self.H * self.W * 1 // fc1_fc2_reduction)
             self.fc1_fc2 = nn.Sequential()
-            self.fc1_fc2.add_module('fc1', nn.Linear(self.H * self.W * self.c_parts, internal_neurons))
-            self.fc1_fc2.add_module('relu', nn.ReLU())
-            self.fc1_fc2.add_module('fc2', nn.Linear(internal_neurons, self.H * self.W * self.c_parts))
+            self.fc1_fc2.add_module('fc1', nn.Linear(self.H * self.W * 1, internal_neurons))
+            self.fc1_fc2.add_module('relu', nn.GELU())
+            self.fc1_fc2.add_module('fc2', nn.Linear(internal_neurons, self.H * self.W * 1))
             if deploy:
-                self.avg = nn.AdaptiveAvgPool3d((self.c_parts, self.H, self.W))
+#                self.avg = nn.AdaptiveAvgPool2d((self.H, self.W))
+                self.avg = nn.AdaptiveAvgPool3d((1, self.H, self.W))
             else:
                 self.avg = nn.Sequential()
-                self.avg.add_module('avg', nn.AdaptiveAvgPool3d((self.c_parts, self.H, self.W)))
-                self.avg.add_module('bn', nn.BatchNorm2d(num_features=self.c_parts))
+                self.avg.add_module('bn', nn.BatchNorm2d(num_features=self.b))
+                self.avg.add_module('avg', nn.AdaptiveAvgPool3d((1, self.H, self.W)))
+#                self.avg.add_module('avg', nn.AdaptiveAvgPool2d((self.H, self.W)))
 
-        self.fc3 = nn.Conv2d(self.H * self.W * self.b, self.b * self.H * self.W, 1, 1, 0, bias=deploy,
-                             groups=fc3_groups)
+#                self.avg = nn.AdaptiveAvgPool3d((1, self.H, self.W))
+#                self.avg_bn = nn.BatchNorm3d(num_features=self.c_parts)
+
+        self.fc3 = nn.Conv2d(self.H * self.W * self.b, self.b * self.H * self.W, 1, 1, 0, bias=deploy, groups=fc3_groups)
         self.fc3_bn = nn.Identity() if deploy else nn.BatchNorm1d(self.b * self.H * self.W)
+        self.gelu = nn.GELU()
 
         self.reparam_conv_k = reparam_conv_k
         if not deploy and reparam_conv_k is not None:
@@ -66,27 +72,32 @@ class RepMLP(nn.Module):
                                                  bias=False, groups=fc3_groups))
                 conv_branch.add_module('bn', nn.BatchNorm2d(self.b))
                 self.__setattr__('repconv{}'.format(k), conv_branch)
-
+        self.end_pool = nn.AdaptiveAvgPool3d((self.C, 1, 1))
+        self.end_fc = nn.Linear(self.C, self.n_classes)
+        
     def forward(self, inputs):
         if self.need_global_perceptron:
-            v = self.avg(inputs)
-            v = v.reshape(-1, self.c_parts * self.H * self.W)
+            v = inputs.reshape(-1, self.b, self.H, self.H)
+            v = self.avg(v)
+            v = v.reshape(-1, 1 * self.H * self.W)
             v = self.fc1_fc2(v)
-            v = v.reshape(self.c_parts, -1, 1, self.H, 1, self.W)
-            v = v.repeat(1, self.b, 1, 1, 1, 1)
-            inputs = inputs.reshape(-1, self.b, 1, self.H, 1, self.W)
+            v = v.reshape(-1, self.c_parts, 1, self.H, self.W)
+            v = v.repeat(1, 1, self.b, 1, 1)
+            inputs = inputs.reshape(-1, self.c_parts, self.b, self.H, self.W)
+#            inputs = inputs.mul(torch.sigmoid(v))
             inputs = inputs + v
         else:
-            inputs = inputs.reshape(-1, self.b, 1, self.H, 1, self.W)
+            inputs = inputs.reshape(self.c_parts, self.b, self.H, self.W)
 
-        partitions = inputs.permute(0, 2, 4, 1, 3, 5)  # N, h_parts, w_parts, C, in_h, in_w
-
+#        partitions = inputs.permute(0, 2, 4, 1, 3, 5)  # N, h_parts, w_parts, C, in_h, in_w
+        partitions = inputs
         #   Feed partition map into Partition Perceptron
         fc3_inputs = partitions.reshape(-1, self.b * self.H * self.W, 1, 1)
         fc3_out = self.fc3(fc3_inputs)
         fc3_out = fc3_out.reshape(-1, self.b * self.H * self.W)
         fc3_out = self.fc3_bn(fc3_out)
-        fc3_out = fc3_out.reshape(-1, 1, 1, self.b, self.H, self.W)
+        fc3_out = self.gelu(fc3_out)
+        fc3_out = fc3_out.reshape(-1, self.b, self.H, self.W)
 
         #   Feed partition map into Local Perceptron
         if self.reparam_conv_k is not None and not self.deploy:
@@ -95,79 +106,13 @@ class RepMLP(nn.Module):
             for k in self.reparam_conv_k:
                 conv_branch = self.__getattr__('repconv{}'.format(k))
                 conv_out += conv_branch(conv_inputs)
-
-            conv_out = conv_out.reshape(-1, 1, 1, self.b, self.H, self.W)
+            conv_out = conv_out.reshape(-1, self.b, self.H, self.W)
             fc3_out += conv_out
-        fc3_out = fc3_out.permute(0, 3, 1, 4, 2, 5)  # N, O, h_parts, out_h, w_parts, out_w
         out = fc3_out.reshape(*self.target_shape)
+        out = self.end_pool(out)
+        out = out.view(out.size(0), -1)
+        out = self.end_fc(out)
         return out
-
-    def _convert_conv_to_fc(self, conv_kernel, conv_bias):
-        I = torch.eye(self.b * self.H * self.W // self.fc3_groups).repeat(1, self.fc3_groups).reshape(
-            self.b * self.H * self.W // self.fc3_groups, self.b, self.H, self.W).to(conv_kernel.device)
-        fc_k = F.conv2d(I, conv_kernel, padding=conv_kernel.size(2) // 2, groups=self.fc3_groups)
-        fc_k = fc_k.reshape(self.b * self.H * self.W // self.fc3_groups, self.b * self.H * self.W).t()
-        fc_bias = conv_bias.repeat_interleave(self.H * self.W)
-        return fc_k, fc_bias
-
-    def get_equivalent_fc1_fc3_params(self):
-        fc_weight, fc_bias = fuse_bn(self.fc3, self.fc3_bn)
-        if self.reparam_conv_k is not None:
-            largest_k = max(self.reparam_conv_k)
-            largest_branch = self.__getattr__('repconv{}'.format(largest_k))
-            total_kernel, total_bias = fuse_bn(largest_branch.conv, largest_branch.bn)
-            for k in self.reparam_conv_k:
-                if k != largest_k:
-                    k_branch = self.__getattr__('repconv{}'.format(k))
-                    kernel, bias = fuse_bn(k_branch.conv, k_branch.bn)
-                    total_kernel += F.pad(kernel, [(largest_k - k) // 2] * 4)
-                    total_bias += bias
-            rep_weight, rep_bias = self._convert_conv_to_fc(total_kernel, total_bias)
-            final_fc3_weight = rep_weight.reshape_as(fc_weight) + fc_weight
-            final_fc3_bias = rep_bias + fc_bias
-        else:
-            final_fc3_weight = fc_weight
-            final_fc3_bias = fc_bias
-        if self.need_global_perceptron:
-            avgbn = self.avg.bn
-            std = (avgbn.running_var + avgbn.eps).sqrt()
-            scale = avgbn.weight / std
-            avgbias = avgbn.bias - avgbn.running_mean * scale
-            fc1 = self.fc1_fc2.fc1
-            replicate_times = fc1.in_features // len(avgbias)
-            replicated_avgbias = avgbias.repeat_interleave(replicate_times).view(-1, 1)
-            bias_diff = fc1.weight.matmul(replicated_avgbias).squeeze()
-            fc1_bias_new = fc1.bias + bias_diff
-            fc1_weight_new = fc1.weight * scale.repeat_interleave(replicate_times).view(1, -1)
-        else:
-            fc1_bias_new = None
-            fc1_weight_new = None
-
-        return fc1_weight_new, fc1_bias_new, final_fc3_weight, final_fc3_bias
-
-    def switch_to_deploy(self):
-        self.deploy = True
-        fc1_weight, fc1_bias, fc3_weight, fc3_bias = self.get_equivalent_fc1_fc3_params()
-        #   Remove Local Perceptron
-        if self.reparam_conv_k is not None:
-            for k in self.reparam_conv_k:
-                self.__delattr__('repconv{}'.format(k))
-        #   Remove the BN after FC3
-        self.__delattr__('fc3')
-        self.__delattr__('fc3_bn')
-        self.fc3 = nn.Conv2d(self.b * self.H * self.W, self.b * self.H * self.W, 1, 1, 0, bias=True,
-                             groups=self.fc3_groups)
-        self.fc3_bn = nn.Identity()
-        #   Remove the BN after AVG
-        if self.need_global_perceptron:
-            self.__delattr__('avg')
-            self.avg = nn.AdaptiveAvgPool3d((self.c_parts, self.H, self.W))
-        #   Set values
-        if fc1_weight is not None:
-            self.fc1_fc2.fc1.weight.data = fc1_weight
-            self.fc1_fc2.fc1.bias.data = fc1_bias
-        self.fc3.weight.data = fc3_weight
-        self.fc3.bias.data = fc3_bias
 
 
 def repmlp_model_convert(model: torch.nn.Module, save_path=None, do_copy=True):
@@ -198,10 +143,11 @@ def get_model(name, **kwargs):
     weights[torch.LongTensor(kwargs['ignored_labels'])] = 0.
     weights = weights.to(kwargs['device'])
     kwargs.setdefault('weights', weights)
-    kwargs.setdefault('patch_size', 7)
+    kwargs.setdefault('patch_size', 9)
 
     if name == 'IndianPines':
-        kwargs.setdefault('patch_bands', 50)
+        kwargs.setdefault('patch_bands', 40)
+#        kwargs.setdefault('pca_bands', 200)
         kwargs.setdefault('epoch', 100)
         # training percentage and validation percentage
         kwargs.setdefault('batch_size', 1)
@@ -210,25 +156,27 @@ def get_model(name, **kwargs):
         # learning rate
         kwargs.setdefault('lr', 0.01)
     elif name == 'PaviaU':
+        # bands 103
+        kwargs.setdefault('patch_bands', 20)
+#        kwargs.setdefault('pca_bands', 100)
         kwargs.setdefault('epoch', 100)
-        kwargs.setdefault('batch_size', 64)
         # training percentage and validation percentage
-        kwargs.setdefault('training_percentage', 0.03)
-        kwargs.setdefault('validation_percentage', 0.03)
+        kwargs.setdefault('batch_size', 1)
+        kwargs.setdefault('training_percentage', 0.1)
+        kwargs.setdefault('validation_percentage', 0.1)
         # learning rate
         kwargs.setdefault('lr', 0.01)
-        # conv layer kernel numbers
-        kwargs.setdefault('kernel_nums', 1)
     elif name == 'KSC':
-        kwargs.setdefault('epoch', 130)
-        kwargs.setdefault('batch_size', 32)
+        # bands 163
+        kwargs.setdefault('patch_bands', 40)
+#        kwargs.setdefault('pca_bands', 160)
+        kwargs.setdefault('epoch', 100)
         # training percentage and validation percentage
-        kwargs.setdefault('training_percentage', 0.03)
-        kwargs.setdefault('validation_percentage', 0.03)
+        kwargs.setdefault('batch_size', 1)
+        kwargs.setdefault('training_percentage', 0.1)
+        kwargs.setdefault('validation_percentage', 0.1)
         # learning rate
         kwargs.setdefault('lr', 0.01)
-        # conv layer kernel numbers
-        kwargs.setdefault('kernel_nums', 1)
     elif name == 'Botswana':
         # training percentage and validation percentage
         kwargs.setdefault('training_percentage', 0.1)
@@ -254,16 +202,18 @@ def get_model(name, **kwargs):
         # conv layer kernel numbers
         kwargs.setdefault('kernel_nums', 8)
 
-    C = kwargs['bands']
+    C = kwargs['n_bands']
     H = kwargs['patch_size']
     W = kwargs['patch_size']
     patch_bands = kwargs['patch_bands']
+    n_classes = kwargs['n_classes']
     groups = patch_bands
-    model = RepMLP(C, H=H, W=W, patch_bands=patch_bands, reparam_conv_k=(1, 3, 5), fc1_fc2_reduction=1, fc3_groups=groups,
+    model = RepMLP(n_classes=n_classes, in_channels=C, H=H, W=W, patch_bands=patch_bands, reparam_conv_k=(1, 3, 5), fc1_fc2_reduction=1, fc3_groups=groups,
                     deploy=False)
-    criterion = nn.CrossEntropyLoss(weight=kwargs['weights'])
+#    criterion = nn.CrossEntropyLoss(weight=kwargs['weights'])
+    criterion = nn.CrossEntropyLoss()
     model = model.to(kwargs['device'])
-    #    optimizer = optim.Adam(model.parameters(), lr=kwargs['lr'])
+#    optimizer = optim.Adam(model.parameters(), lr=kwargs['lr'])
     #    optimizer = optim.RMSprop(model.parameters(), lr=kwargs['lr'])
     optimizer = optim.SGD(model.parameters(), lr=kwargs['lr'], weight_decay=0.0001, momentum=0.9)
 
@@ -284,7 +234,7 @@ def get_model(name, **kwargs):
 if __name__ == '__main__':
     N = 1
     C = 200
-    patch_bands = 50
+    patch_bands = 40
     H = 7
     W = 7
     # h = 7
@@ -294,7 +244,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     x = torch.randn(N, C, H, W).to(device)
     print('input shape is ', x.size())
-    repmlp = RepMLP(C, H=H, W=W, patch_bands=patch_bands, reparam_conv_k=(1, 3, 5), fc1_fc2_reduction=1, fc3_groups=groups,
+    repmlp = RepMLP(17, in_channels=C, H=H, W=W, patch_bands=patch_bands, reparam_conv_k=(1, 3, 5), fc1_fc2_reduction=1, fc3_groups=groups,
                     deploy=False).to(device)
     repmlp.eval()
     for module in repmlp.modules():

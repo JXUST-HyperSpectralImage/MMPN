@@ -2,7 +2,7 @@ import torch
 from torch.utils import data
 from torchsummary import summary
 from dataset import get_dataset, HyperX
-from RepMLP import get_model
+from MMPN import get_model
 from train import test, train
 from utils import get_device, sample_gt, compute_imf_weights, metrics, logger, display_dataset, display_goundtruth, PCA_data
 import argparse
@@ -25,7 +25,7 @@ parser.add_argument('--dataset', type=str, default='IndianPines',
                          "KSC"
                          "Botswana"
                          "Salinas")
-parser.add_argument('--model', type=str, default='RepMLP',
+parser.add_argument('--model', type=str, default='MMPN',
                     help="Model to train.")
 parser.add_argument('--folder', type=str, default='../dataset/',
                     help="Folder where to store the "

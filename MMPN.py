@@ -6,23 +6,12 @@ from torch import optim
 from torchsummary import summary
 
 
-def fuse_bn(conv_or_fc, bn):
-    std = (bn.running_var + bn.eps).sqrt()
-    t = bn.weight / std
-    if conv_or_fc.weight.ndim == 4:
-        t = t.reshape(-1, 1, 1, 1)
-    else:
-        t = t.reshape(-1, 1)
-    return conv_or_fc.weight * t, bn.bias - bn.running_mean * bn.weight / std
-
-
-class RepMLP(nn.Module):
+class MMPN(nn.Module):
     def __init__(self, n_classes, in_channels,
                  H, W, patch_bands,
-                 reparam_conv_k=None,
+                 conv_layer_k=None,
                  fc1_fc2_reduction=1,
-                 fc3_groups=1,
-                 deploy=False, ):
+                 fc3_groups=1):
         super().__init__()
         self.n_classes = n_classes
         self.C = in_channels
@@ -37,41 +26,38 @@ class RepMLP(nn.Module):
         assert self.C % self.b == 0
         self.target_shape = (-1, self.C, self.H, self.W)
 
-        self.deploy = deploy
-
         self.need_global_perceptron = (self.C != patch_bands)
         print('need_global_perceptron==>', self.need_global_perceptron)
         if self.need_global_perceptron:
-            internal_neurons = int(self.H * self.W * 1 // fc1_fc2_reduction)
+            internal_neurons = int(self.H * self.W * self.c_parts // fc1_fc2_reduction)
+            
             self.fc1_fc2 = nn.Sequential()
-            self.fc1_fc2.add_module('fc1', nn.Linear(self.H * self.W * 1, internal_neurons))
+#            self.fc1_fc2.add_module('fc1', nn.Linear(self.H * self.W * 1, internal_neurons))
+            self.fc1_fc2.add_module('fc1', nn.Linear(self.H * self.W * self.c_parts, internal_neurons))
             self.fc1_fc2.add_module('relu', nn.GELU())
-            self.fc1_fc2.add_module('fc2', nn.Linear(internal_neurons, self.H * self.W * 1))
-            if deploy:
-#                self.avg = nn.AdaptiveAvgPool2d((self.H, self.W))
-                self.avg = nn.AdaptiveAvgPool3d((1, self.H, self.W))
-            else:
-                self.avg = nn.Sequential()
-                self.avg.add_module('bn', nn.BatchNorm2d(num_features=self.b))
-                self.avg.add_module('avg', nn.AdaptiveAvgPool3d((1, self.H, self.W)))
-#                self.avg.add_module('avg', nn.AdaptiveAvgPool2d((self.H, self.W)))
+#            self.fc1_fc2.add_module('fc2', nn.Linear(internal_neurons, self.H * self.W * 1))
+            self.fc1_fc2.add_module('fc2', nn.Linear(internal_neurons, self.H * self.W * self.c_parts))
+            
+            self.avg = nn.Sequential()
+            self.avg.add_module('bn', nn.BatchNorm2d(num_features=self.b))
+            self.avg.add_module('avg', nn.AdaptiveAvgPool3d((1, self.H, self.W)))
+#            self.avg.add_module('avg', nn.AdaptiveAvgPool2d((self.H, self.W)))
+#            self.avg = nn.AdaptiveAvgPool3d((1, self.H, self.W))
+#            self.avg_bn = nn.BatchNorm3d(num_features=self.c_parts)
 
-#                self.avg = nn.AdaptiveAvgPool3d((1, self.H, self.W))
-#                self.avg_bn = nn.BatchNorm3d(num_features=self.c_parts)
-
-        self.fc3 = nn.Conv2d(self.H * self.W * self.b, self.b * self.H * self.W, 1, 1, 0, bias=deploy, groups=fc3_groups)
-        self.fc3_bn = nn.Identity() if deploy else nn.BatchNorm1d(self.b * self.H * self.W)
+        self.fc3 = nn.Conv2d(self.H * self.W * self.b, self.b * self.H * self.W, 1, 1, 0, bias=False, groups=self.H * self.W * self.b)
+        self.fc3_bn = nn.BatchNorm1d(self.b * self.H * self.W)
         self.gelu = nn.GELU()
 
-        self.reparam_conv_k = reparam_conv_k
-        if not deploy and reparam_conv_k is not None:
-            for k in reparam_conv_k:
-                conv_branch = nn.Sequential()
-                conv_branch.add_module('conv',
-                                       nn.Conv2d(in_channels=self.b, out_channels=self.b, kernel_size=k, padding=k // 2,
-                                                 bias=False, groups=fc3_groups))
-                conv_branch.add_module('bn', nn.BatchNorm2d(self.b))
-                self.__setattr__('repconv{}'.format(k), conv_branch)
+        self.conv_layer_k = conv_layer_k
+
+        for k in conv_layer_k:
+            conv_branch = nn.Sequential()
+            conv_branch.add_module('conv',
+                                   nn.Conv2d(in_channels=self.b, out_channels=self.b, kernel_size=k, padding=k // 2,
+                                             bias=False, groups=self.b))
+            conv_branch.add_module('bn', nn.BatchNorm2d(self.b))
+            self.__setattr__('conv_bn{}'.format(k), conv_branch)
         self.end_pool = nn.AdaptiveAvgPool3d((self.C, 1, 1))
         self.end_fc = nn.Linear(self.C, self.n_classes)
         
@@ -79,7 +65,8 @@ class RepMLP(nn.Module):
         if self.need_global_perceptron:
             v = inputs.reshape(-1, self.b, self.H, self.H)
             v = self.avg(v)
-            v = v.reshape(-1, 1 * self.H * self.W)
+#            v = v.reshape(-1, 1 * self.H * self.W)
+            v = v.reshape(-1, self.c_parts * self.H * self.W)
             v = self.fc1_fc2(v)
             v = v.reshape(-1, self.c_parts, 1, self.H, self.W)
             v = v.repeat(1, 1, self.b, 1, 1)
@@ -100,11 +87,11 @@ class RepMLP(nn.Module):
         fc3_out = fc3_out.reshape(-1, self.b, self.H, self.W)
 
         #   Feed partition map into Local Perceptron
-        if self.reparam_conv_k is not None and not self.deploy:
+        if self.conv_layer_k is not None:
             conv_inputs = partitions.reshape(-1, self.b, self.H, self.W)
             conv_out = 0
-            for k in self.reparam_conv_k:
-                conv_branch = self.__getattr__('repconv{}'.format(k))
+            for k in self.conv_layer_k:
+                conv_branch = self.__getattr__('conv_bn{}'.format(k))
                 conv_out += conv_branch(conv_inputs)
             conv_out = conv_out.reshape(-1, self.b, self.H, self.W)
             fc3_out += conv_out
@@ -113,17 +100,6 @@ class RepMLP(nn.Module):
         out = out.view(out.size(0), -1)
         out = self.end_fc(out)
         return out
-
-
-def repmlp_model_convert(model: torch.nn.Module, save_path=None, do_copy=True):
-    if do_copy:
-        model = copy.deepcopy(model)
-    for module in model.modules():
-        if hasattr(module, 'switch_to_deploy'):
-            module.switch_to_deploy()
-    if save_path is not None:
-        torch.save(model.state_dict(), save_path)
-    return model
 
 
 def get_model(name, **kwargs):
@@ -208,8 +184,7 @@ def get_model(name, **kwargs):
     patch_bands = kwargs['patch_bands']
     n_classes = kwargs['n_classes']
     groups = patch_bands
-    model = RepMLP(n_classes=n_classes, in_channels=C, H=H, W=W, patch_bands=patch_bands, reparam_conv_k=(1, 3, 5), fc1_fc2_reduction=1, fc3_groups=groups,
-                    deploy=False)
+    model = MMPN(n_classes=n_classes, in_channels=C, H=H, W=W, patch_bands=patch_bands, conv_layer_k=(1, 3, 5), fc1_fc2_reduction=1, fc3_groups=groups)
 #    criterion = nn.CrossEntropyLoss(weight=kwargs['weights'])
     criterion = nn.CrossEntropyLoss()
     model = model.to(kwargs['device'])
@@ -233,40 +208,30 @@ def get_model(name, **kwargs):
 
 if __name__ == '__main__':
     N = 1
-    C = 200
-    patch_bands = 40
-    H = 7
-    W = 7
+    C = 100
+    patch_bands = 50
+    H = 9
+    W = 9
     # h = 7
     # w = 7
     # O = 8
-    groups = patch_bands
+    groups = patch_bands * H * W
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     x = torch.randn(N, C, H, W).to(device)
     print('input shape is ', x.size())
-    repmlp = RepMLP(17, in_channels=C, H=H, W=W, patch_bands=patch_bands, reparam_conv_k=(1, 3, 5), fc1_fc2_reduction=1, fc3_groups=groups,
-                    deploy=False).to(device)
-    repmlp.eval()
-    for module in repmlp.modules():
+    net = MMPN(10, in_channels=C, H=H, W=W, patch_bands=patch_bands, conv_layer_k=(1, 3, 5), fc1_fc2_reduction=1, fc3_groups=groups).to(device)
+    net.eval()
+    for module in net.modules():
         if isinstance(module, nn.BatchNorm2d) or isinstance(module, nn.BatchNorm1d):
             nn.init.uniform_(module.running_mean, 0, 0.1)
             nn.init.uniform_(module.running_var, 0, 0.1)
             nn.init.uniform_(module.weight, 0, 0.1)
             nn.init.uniform_(module.bias, 0, 0.1)
 
-    total = sum([param.nelement() for param in repmlp.parameters()])
+    total = sum([param.nelement() for param in net.parameters()])
     print("Number of parameter: {}==>{:.2f}M".format(total, total / 1e6))
     with torch.no_grad():
-        summary(repmlp, x)
-    out = repmlp(x)
+        summary(net, x)
+    out = net(x)
+    print(out)
 
-    repmlp.switch_to_deploy()
-    total = sum([param.nelement() for param in repmlp.parameters()])
-    print("Number of parameter: {}==>{:.2f}M".format(total, total / 1e6))
-    with torch.no_grad():
-        summary(repmlp, x)
-
-    deployout = repmlp(x)
-    # 参数重构之后网络与原始网络误差
-    print('difference between the outputs of the training-time and converted RepMLP is')
-    print(((deployout - out) ** 2).sum())

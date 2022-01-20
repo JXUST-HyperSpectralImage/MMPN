@@ -8,32 +8,44 @@ import logging
 import seaborn as sns
 import spectral
 import os
-from sklearn.decomposition import PCA
+# from sklearn.decomposition import PCA
 
 
-def PCA_data(data, dataset, components=10):
-    model_dir = 'pca_data/'+dataset+'.npy'
-    if not os.path.isfile(model_dir):
-#        os.makedirs(model_dir, exist_ok=True)
-        new_datawithlabel_list = []
-        for i in range(data.shape[0]):
-            for j in range(data.shape[1]):
-                c2l = list(data[i][j])
-                c2l.append(data[i][j])
-                new_datawithlabel_list.append(c2l)
-        new_datawithlabel_array = np.array(new_datawithlabel_list)
-        pca = PCA(n_components=components)
-        pca.fit(new_datawithlabel_array[:,:-1],new_datawithlabel_array[:,-1])
-        pca_data = pca.transform(new_datawithlabel_array[:,:-1])
-        new_pca_data = np.zeros((data.shape[0],data.shape[1],components))
-        for i in range(data.shape[0]):
-            for j in range(data.shape[1]):
-                new_pca_data[i][j] = pca_data[i*data.shape[1]+j]
-        np.save(file=model_dir, arr=new_pca_data)
+# def PCA_data(data, dataset, components=10):
+#     model_dir = 'pca_data/'+dataset+'.npy'
+#     if not os.path.isfile(model_dir):
+# #        os.makedirs(model_dir, exist_ok=True)
+#         new_datawithlabel_list = []
+#         for i in range(data.shape[0]):
+#             for j in range(data.shape[1]):
+#                 c2l = list(data[i][j])
+#                 c2l.append(data[i][j])
+#                 new_datawithlabel_list.append(c2l)
+#         new_datawithlabel_array = np.array(new_datawithlabel_list)
+#         pca = PCA(n_components=components)
+#         pca.fit(new_datawithlabel_array[:,:-1],new_datawithlabel_array[:,-1])
+#         pca_data = pca.transform(new_datawithlabel_array[:,:-1])
+#         new_pca_data = np.zeros((data.shape[0],data.shape[1],components))
+#         for i in range(data.shape[0]):
+#             for j in range(data.shape[1]):
+#                 new_pca_data[i][j] = pca_data[i*data.shape[1]+j]
+#         np.save(file=model_dir, arr=new_pca_data)
+#     else:
+#         new_pca_data = np.load(file=model_dir)
+#     return new_pca_data
+
+def dim_reduce(data, dataset_name, reserve_components=None):
+    file_name = 'dim_reduce_data/'+dataset_name+'_{}'.format(reserve_components)+'.npy'
+    if not os.path.isdir('dim_reduce_data/'):
+        os.makedirs('dim_reduce_data/')
+    if not os.path.isfile(file_name):
+        new_data = data[:,:,:reserve_components]
+        np.save(file=file_name, arr=new_data)
+        print("Save reduce dimensionality data successfully!")
     else:
-        new_pca_data = np.load(file=model_dir)
-    return new_pca_data
-    
+        new_data = np.load(file=file_name)
+        print("Load reduce dimensionality data successfully!")
+    return new_data
 
 def logger(logfile_name='logs/logs.log'):
     # 先创建记录器

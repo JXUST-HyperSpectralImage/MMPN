@@ -2,19 +2,17 @@ import torch
 from torch.utils import data
 from torchsummary import summary
 from dataset import get_dataset, HyperX
-from RepMLP import get_model
+from MMPN import get_model
 from train import test, train
-from utils import get_device, sample_gt, compute_imf_weights, metrics, logger, display_dataset, display_goundtruth, PCA_data
+from utils import get_device, sample_gt, compute_imf_weights, metrics, logger, display_dataset, display_goundtruth, dim_reduce
 import argparse
 import numpy as np
 import warnings
 import datetime
 import visdom
 
-# 忽略警告
 warnings.filterwarnings("ignore")
 
-# 配置项目参数
 parser = argparse.ArgumentParser(description="Run experiments on various hyperspectral datasets")
 parser.add_argument('--dataset', type=str, default='IndianPines',
                     help="Choice one dataset for training"
@@ -25,7 +23,7 @@ parser.add_argument('--dataset', type=str, default='IndianPines',
                          "KSC"
                          "Botswana"
                          "Salinas")
-parser.add_argument('--model', type=str, default='RepMLP',
+parser.add_argument('--model', type=str, default='MMPN',
                     help="Model to train.")
 parser.add_argument('--folder', type=str, default='../dataset/',
                     help="Folder where to store the "
@@ -47,10 +45,8 @@ group_dataset.add_argument('--validation_percentage', type=float,
                                 "assigned to validation groups.")
 group_dataset.add_argument('--sample_nums', type=int, default=20,
                            help="Number of samples to use for training and validation")
-group_dataset.add_argument('--train_gt', action='store_true',
+group_dataset.add_argument('--load_data', type=str, default=None,
                            help="Samples use of training")
-group_dataset.add_argument('--test_gt', action='store_true',
-                           help="Samples use of testing")
 
 group_train = parser.add_argument_group('Training')
 group_train.add_argument('--epoch', type=int,
@@ -62,7 +58,7 @@ group_train.add_argument('--patch_size', type=int,
                               "(optional, if absent will be set by the model)")
 group_train.add_argument('--patch_bands', type=int,
                          help="Segment the HSI data in the spectral dimension according to the size of patch_bands")
-group_train.add_argument('--pca_bands', type=int,
+group_train.add_argument('--reserve_bands', type=int,
                          help="Spectral bands after PCA")
 group_train.add_argument('--lr', type=float,
                          help="Learning rate, set by the model if not specified.")
@@ -110,8 +106,7 @@ CHECKPOINT = args.restore
 LEARNING_RATE = args.lr
 # Automated class balancing
 CLASS_BALANCING = args.class_balancing
-TRAIN_GT = args.train_gt
-TEST_GT = args.test_gt
+LOAD_DATA = args.load_data
 TEST_STRIDE = args.test_stride
 
 hyperparams = vars(args)
@@ -119,23 +114,20 @@ hyperparams = vars(args)
 # Load the dataset
 img, gt, LABEL_VALUES, IGNORED_LABELS = get_dataset(logger, DATASET, FOLDER)
 # 根据光谱划分的波段长度对原始数据进行填充
-if hyperparams['pca_bands'] is not None:
-    img = PCA_data(img, DATASET, components=hyperparams['pca_bands'])
+if hyperparams['reserve_bands'] is not None:
+    img = dim_reduce(img, DATASET, reserve_components=hyperparams['reserve_bands'])
 for i in range(RUN):
-    if TRAIN_GT and TEST_GT:
-        train_gt_file = '../dataset/' + DATASET + '/train_gt' + str(0) + '.npy'
-        test_gt_file = '../dataset/' + DATASET + '/test_gt' + str(0) + '.npy'
+    if LOAD_DATA:
+        train_gt_file = '../dataset/' + DATASET + '/' + LOAD_DATA + '/train_gt.npy'
+        test_gt_file  = '../dataset/' + DATASET + '/' + LOAD_DATA + '/test_gt.npy'
         train_gt = np.load(train_gt_file, 'r')
         logger.info("Load train_gt successfully!(PATH:{})".format(train_gt_file))
-        logger.info(
-            "{} samples selected for training(over {})".format(np.count_nonzero(train_gt), np.count_nonzero(gt)))
-        logger.info("Training Percentage:{:.2}".format(np.count_nonzero(train_gt) / np.count_nonzero(gt)))
+        logger.info("{} samples selected for training(over {})".format(np.count_nonzero(train_gt), np.count_nonzero(gt)))
+        logger.info("Training Percentage:{:.2}".format(np.count_nonzero(train_gt)/np.count_nonzero(gt)))
         test_gt = np.load(test_gt_file, 'r')
         logger.info("Load train_gt successfully!(PATH:{})".format(test_gt_file))
-        logger.info("{} samples selected for test(over {})".format(np.count_nonzero(test_gt), np.count_nonzero(gt)))
+        logger.info("{} samples selected for training(over {})".format(np.count_nonzero(test_gt), np.count_nonzero(gt)))
     else:
-        train_gt_file = '../dataset/' + DATASET + '/train_gt' + str(i) + '.npy'
-        test_gt_file = '../dataset/' + DATASET + '/test_gt' + str(i) + '.npy'
         # Sample random training spectra
         train_gt, test_gt = sample_gt(gt, TRAINING_PERCENTAGE, mode=SAMPLING_MODE)
         logger.info("Save train_gt successfully!(PATH:{})".format(train_gt_file))
@@ -161,6 +153,13 @@ for i in range(RUN):
     hyperparams.update(
         {'n_classes': N_CLASSES, 'n_bands': N_BANDS, 'ignored_labels': IGNORED_LABELS, 'device': CUDA_DEVICE})
     hyperparams = dict((k, v) for k, v in hyperparams.items() if v is not None)
+    
+    # Class balancing
+    if CLASS_BALANCING:
+        weights = compute_imf_weights(train_gt, N_CLASSES, IGNORED_LABELS)
+        # hyperparams.update({'weights': torch.from_numpy(weights)})
+        weights = torch.from_numpy(weights.astype(np.float32))
+        hyperparams['weights'] = weights.to(hyperparams['device'])
 
     # Get model
     model, optimizer, loss, hyperparams = get_model(DATASET, **hyperparams)
@@ -173,22 +172,19 @@ for i in range(RUN):
 
     logger.info("Running an experiment with the {} model".format(MODEL))
 
-    # Class balancing
-    if CLASS_BALANCING:
-        weights = compute_imf_weights(train_gt, N_CLASSES, IGNORED_LABELS)
-        #    hyperparams.update({'weights': torch.from_numpy(weights)})
-        hyperparams['weights'] = torch.from_numpy(weights)
 
     # Generate the dataset
     train_dataset = HyperX(img, train_gt, **hyperparams)
     train_loader = data.DataLoader(train_dataset,
                                    batch_size=hyperparams['batch_size'],
-                                   shuffle=True)
+                                   shuffle=True,
+                                   drop_last=True)
     logger.info("Train dataloader:{}".format(len(train_loader)))
 
     val_dataset = HyperX(img, val_gt, **hyperparams)
     val_loader = data.DataLoader(val_dataset,
-                                 batch_size=hyperparams['batch_size'])
+                                 batch_size=hyperparams['batch_size'],
+                                 drop_last=True)
     logger.info("Validation dataloader:{}".format(len(train_loader)))
 
     logger.info('----------Training parameters----------')
@@ -219,17 +215,12 @@ for i in range(RUN):
             # Allow the user to stop the training
             pass
     prediction = np.asarray(test(model, img, hyperparams), np.uint8)
-#    np.savetxt('prediction', prediction, fmt="%d")
     display_goundtruth(gt=prediction, vis=vis, caption="Testing ground truth(full)" + "RUN{}".format(i))
     results = metrics(prediction, test_gt, ignored_labels=hyperparams['ignored_labels'], n_classes=N_CLASSES)
     mask = np.zeros(gt.shape, dtype='bool')
     for l in IGNORED_LABELS:
         mask[gt == l] = True
     prediction[mask] = 0
-#    filename = open('prediction.txt', 'w')
-#    filename.write(str(filename))
-#    filename.close()
-#    np.savetxt('prediction', prediction)
     display_goundtruth(gt=prediction, vis=vis, caption="Testing ground truth(semi)" + "RUN{}".format(i))
 
     logger.info('The network training successfully!!!')

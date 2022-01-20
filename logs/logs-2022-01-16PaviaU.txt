@@ -1,0 +1,776 @@
+creating ./logs/logs-2022-01-16PaviaU.txt
+---------------------------------------------------------------------
+-----------------------------Next run log----------------------------
+---------------------------2022-01-16:23:19--------------------------
+---------------------------------------------------------------------
+Computation on CUDA GPU device 0
+Load train_gt successfully!(PATH:../dataset/PaviaU/0.03/train_gt.npy)
+1283 samples selected for training(over 42776)
+Training Percentage:0.03
+Load train_gt successfully!(PATH:../dataset/PaviaU/0.03/test_gt.npy)
+41493 samples selected for training(over 42776)
+Running an experiment with the MMPN model, RUN [1/1]
+RUN:0
+Setting up a new session...
+Visdom successfully connected to server
+1283 samples selected for validation(over 42776)
+Running an experiment with the MMPN model
+Train dataloader:122
+Validation dataloader:122
+----------Training parameters----------
+dataset:PaviaU
+model:MMPN
+folder:../dataset/
+cuda:0
+run:1
+sampling_mode:random
+validation_percentage:0.03
+sample_nums:20
+load_data:0.03
+epoch:120
+save_epoch:5
+patch_size:9
+patch_bands:50
+reserve_bands:100
+lr:0.01
+batch_size:10
+class_balancing:True
+test_stride:1
+n_classes:10
+n_bands:100
+ignored_labels:[0]
+device:cuda:0
+weights:tensor([0.0000, 0.4623, 0.1646, 1.4603, 1.0000, 2.3000, 0.6093, 2.3000, 0.8288,
+        3.2857], device='cuda:0')
+scheduler:<torch.optim.lr_scheduler.ReduceLROnPlateau object at 0x7f672c8ac860>
+supervision:full
+center_pixel:True
+Network :
+Number of parameter: 32629==>0.03M
+----------Training process----------
+Epoch [1/120    avg_loss:1.304, val_acc:0.499]
+Epoch [2/120    avg_loss:0.702, val_acc:0.786]
+Epoch [3/120    avg_loss:0.545, val_acc:0.625]
+Epoch [4/120    avg_loss:0.434, val_acc:0.748]
+Epoch [5/120    avg_loss:0.408, val_acc:0.775]
+Epoch [6/120    avg_loss:0.326, val_acc:0.811]
+Epoch [7/120    avg_loss:0.303, val_acc:0.802]
+Epoch [8/120    avg_loss:0.234, val_acc:0.882]
+Epoch [9/120    avg_loss:0.292, val_acc:0.873]
+Epoch [10/120    avg_loss:0.220, val_acc:0.880]
+Epoch [11/120    avg_loss:0.256, val_acc:0.906]
+Epoch [12/120    avg_loss:0.173, val_acc:0.926]
+Epoch [13/120    avg_loss:0.183, val_acc:0.929]
+Epoch [14/120    avg_loss:0.152, val_acc:0.910]
+Epoch [15/120    avg_loss:0.170, val_acc:0.931]
+Epoch [16/120    avg_loss:0.137, val_acc:0.926]
+Epoch [17/120    avg_loss:0.152, val_acc:0.945]
+Epoch [18/120    avg_loss:0.105, val_acc:0.919]
+Epoch [19/120    avg_loss:0.134, val_acc:0.918]
+Epoch [20/120    avg_loss:0.129, val_acc:0.934]
+Epoch [21/120    avg_loss:0.066, val_acc:0.954]
+Epoch [22/120    avg_loss:0.082, val_acc:0.959]
+Epoch [23/120    avg_loss:0.084, val_acc:0.948]
+Epoch [24/120    avg_loss:0.059, val_acc:0.958]
+Epoch [25/120    avg_loss:0.053, val_acc:0.942]
+Epoch [26/120    avg_loss:0.096, val_acc:0.957]
+Epoch [27/120    avg_loss:0.069, val_acc:0.914]
+Epoch [28/120    avg_loss:0.084, val_acc:0.965]
+Epoch [29/120    avg_loss:0.084, val_acc:0.966]
+Epoch [30/120    avg_loss:0.066, val_acc:0.964]
+Epoch [31/120    avg_loss:0.059, val_acc:0.923]
+Epoch [32/120    avg_loss:0.060, val_acc:0.945]
+Epoch [33/120    avg_loss:0.075, val_acc:0.966]
+Epoch [34/120    avg_loss:0.113, val_acc:0.867]
+Epoch [35/120    avg_loss:0.070, val_acc:0.974]
+Epoch [36/120    avg_loss:0.059, val_acc:0.924]
+Epoch [37/120    avg_loss:0.076, val_acc:0.949]
+Epoch [38/120    avg_loss:0.097, val_acc:0.934]
+Epoch [39/120    avg_loss:0.057, val_acc:0.948]
+Epoch [40/120    avg_loss:0.063, val_acc:0.955]
+Epoch [41/120    avg_loss:0.075, val_acc:0.968]
+Epoch [42/120    avg_loss:0.034, val_acc:0.979]
+Epoch [43/120    avg_loss:0.046, val_acc:0.889]
+Epoch [44/120    avg_loss:0.038, val_acc:0.967]
+Epoch [45/120    avg_loss:0.025, val_acc:0.974]
+Epoch [46/120    avg_loss:0.022, val_acc:0.979]
+Epoch [47/120    avg_loss:0.020, val_acc:0.975]
+Epoch [48/120    avg_loss:0.019, val_acc:0.975]
+Epoch [49/120    avg_loss:0.017, val_acc:0.987]
+Epoch [50/120    avg_loss:0.026, val_acc:0.964]
+Epoch [51/120    avg_loss:0.047, val_acc:0.966]
+Epoch [52/120    avg_loss:0.019, val_acc:0.978]
+Epoch [53/120    avg_loss:0.049, val_acc:0.966]
+Epoch [54/120    avg_loss:0.090, val_acc:0.975]
+Epoch [55/120    avg_loss:0.031, val_acc:0.970]
+Epoch [56/120    avg_loss:0.042, val_acc:0.980]
+Epoch [57/120    avg_loss:0.041, val_acc:0.975]
+Epoch [58/120    avg_loss:0.018, val_acc:0.975]
+Epoch [59/120    avg_loss:0.024, val_acc:0.984]
+Epoch [60/120    avg_loss:0.022, val_acc:0.976]
+Epoch [61/120    avg_loss:0.014, val_acc:0.972]
+Epoch [62/120    avg_loss:0.018, val_acc:0.983]
+Epoch [63/120    avg_loss:0.012, val_acc:0.983]
+Epoch [64/120    avg_loss:0.010, val_acc:0.984]
+Epoch [65/120    avg_loss:0.011, val_acc:0.984]
+Epoch [66/120    avg_loss:0.011, val_acc:0.984]
+Epoch [67/120    avg_loss:0.013, val_acc:0.986]
+Epoch [68/120    avg_loss:0.016, val_acc:0.984]
+Epoch [69/120    avg_loss:0.009, val_acc:0.984]
+Epoch [70/120    avg_loss:0.007, val_acc:0.987]
+Epoch [71/120    avg_loss:0.012, val_acc:0.986]
+Epoch [72/120    avg_loss:0.009, val_acc:0.986]
+Epoch [73/120    avg_loss:0.009, val_acc:0.984]
+Epoch [74/120    avg_loss:0.014, val_acc:0.983]
+Epoch [75/120    avg_loss:0.011, val_acc:0.982]
+Epoch [76/120    avg_loss:0.008, val_acc:0.984]
+Epoch [77/120    avg_loss:0.006, val_acc:0.985]
+Epoch [78/120    avg_loss:0.010, val_acc:0.986]
+Epoch [79/120    avg_loss:0.014, val_acc:0.986]
+Epoch [80/120    avg_loss:0.013, val_acc:0.986]
+Epoch [81/120    avg_loss:0.012, val_acc:0.985]
+Epoch [82/120    avg_loss:0.007, val_acc:0.986]
+Epoch [83/120    avg_loss:0.008, val_acc:0.986]
+Epoch [84/120    avg_loss:0.011, val_acc:0.987]
+Epoch [85/120    avg_loss:0.011, val_acc:0.987]
+Epoch [86/120    avg_loss:0.007, val_acc:0.987]
+Epoch [87/120    avg_loss:0.010, val_acc:0.987]
+Epoch [88/120    avg_loss:0.010, val_acc:0.987]
+Epoch [89/120    avg_loss:0.007, val_acc:0.987]
+Epoch [90/120    avg_loss:0.007, val_acc:0.987]
+Epoch [91/120    avg_loss:0.009, val_acc:0.987]
+Epoch [92/120    avg_loss:0.007, val_acc:0.987]
+Epoch [93/120    avg_loss:0.008, val_acc:0.987]
+Epoch [94/120    avg_loss:0.006, val_acc:0.987]
+Epoch [95/120    avg_loss:0.008, val_acc:0.988]
+Epoch [96/120    avg_loss:0.009, val_acc:0.987]
+Epoch [97/120    avg_loss:0.007, val_acc:0.987]
+Epoch [98/120    avg_loss:0.010, val_acc:0.988]
+Epoch [99/120    avg_loss:0.009, val_acc:0.988]
+Epoch [100/120    avg_loss:0.009, val_acc:0.988]
+Epoch [101/120    avg_loss:0.007, val_acc:0.988]
+Epoch [102/120    avg_loss:0.006, val_acc:0.988]
+Epoch [103/120    avg_loss:0.007, val_acc:0.988]
+Epoch [104/120    avg_loss:0.014, val_acc:0.987]
+Epoch [105/120    avg_loss:0.008, val_acc:0.988]
+Epoch [106/120    avg_loss:0.008, val_acc:0.988]
+Epoch [107/120    avg_loss:0.012, val_acc:0.987]
+Epoch [108/120    avg_loss:0.006, val_acc:0.987]
+Epoch [109/120    avg_loss:0.006, val_acc:0.986]
+Epoch [110/120    avg_loss:0.014, val_acc:0.987]
+Epoch [111/120    avg_loss:0.007, val_acc:0.987]
+Epoch [112/120    avg_loss:0.006, val_acc:0.987]
+Epoch [113/120    avg_loss:0.010, val_acc:0.987]
+Epoch [114/120    avg_loss:0.007, val_acc:0.987]
+Epoch [115/120    avg_loss:0.008, val_acc:0.987]
+Epoch [116/120    avg_loss:0.007, val_acc:0.987]
+Epoch [117/120    avg_loss:0.007, val_acc:0.987]
+Epoch [118/120    avg_loss:0.009, val_acc:0.987]
+Epoch [119/120    avg_loss:0.007, val_acc:0.986]
+Epoch [120/120    avg_loss:0.008, val_acc:0.986]
+The network training successfully!!!
+----------Training result----------
+
+Confusion matrix:
+[[    0     0     0     0     0     0     0     0     0     0]
+ [    0  6371     0     2     0     0    13     1    43     2]
+ [    0     0 17962     0    15     0   104     0     9     0]
+ [    0     2     0  1931     0     0     0     0    99     4]
+ [    0    18     6     1  2930     0     7     0     7     3]
+ [    0     0     0     0     0  1305     0     0     0     0]
+ [    0     0     1     0     0     0  4874     0     3     0]
+ [    0    20     0     0     0     0     1  1267     0     2]
+ [    0     3     9    21    21     0     0     0  3515     2]
+ [    0     1     0     0     8    13     0     0     0   897]]
+
+Accuracy:
+98.93717012508134
+
+F1 scores:
+[       nan 0.99182689 0.99600754 0.96767727 0.9855365  0.99504384
+ 0.98693935 0.99061767 0.97005658 0.98086386]
+
+Kappa:
+0.9859314674818228
+creating ./logs/logs-2022-01-16PaviaU.txt
+---------------------------------------------------------------------
+-----------------------------Next run log----------------------------
+---------------------------2022-01-16:23:44--------------------------
+---------------------------------------------------------------------
+Computation on CUDA GPU device 0
+Load train_gt successfully!(PATH:../dataset/PaviaU/0.03/train_gt.npy)
+1283 samples selected for training(over 42776)
+Training Percentage:0.03
+Load train_gt successfully!(PATH:../dataset/PaviaU/0.03/test_gt.npy)
+41493 samples selected for training(over 42776)
+Running an experiment with the MMPN model, RUN [1/1]
+RUN:0
+Setting up a new session...
+Visdom successfully connected to server
+1283 samples selected for validation(over 42776)
+Running an experiment with the MMPN model
+Train dataloader:153
+Validation dataloader:153
+----------Training parameters----------
+dataset:PaviaU
+model:MMPN
+folder:../dataset/
+cuda:0
+run:1
+sampling_mode:random
+validation_percentage:0.03
+sample_nums:20
+load_data:0.03
+epoch:120
+save_epoch:5
+patch_size:9
+patch_bands:10
+reserve_bands:100
+lr:0.01
+batch_size:8
+class_balancing:True
+test_stride:1
+n_classes:10
+n_bands:100
+ignored_labels:[0]
+device:cuda:0
+weights:tensor([0.0000, 0.4623, 0.1646, 1.4603, 1.0000, 2.3000, 0.6093, 2.3000, 0.8288,
+        3.2857], device='cuda:0')
+scheduler:<torch.optim.lr_scheduler.ReduceLROnPlateau object at 0x7f406078bac8>
+supervision:full
+center_pixel:True
+Network :
+Number of parameter: 12410==>0.01M
+----------Training process----------
+Epoch [1/120    avg_loss:1.982, val_acc:0.299]
+Epoch [2/120    avg_loss:1.474, val_acc:0.558]
+Epoch [3/120    avg_loss:1.139, val_acc:0.718]
+Epoch [4/120    avg_loss:0.847, val_acc:0.621]
+Epoch [5/120    avg_loss:0.658, val_acc:0.728]
+Epoch [6/120    avg_loss:0.571, val_acc:0.724]
+Epoch [7/120    avg_loss:0.480, val_acc:0.727]
+Epoch [8/120    avg_loss:0.406, val_acc:0.748]
+Epoch [9/120    avg_loss:0.421, val_acc:0.729]
+Epoch [10/120    avg_loss:0.374, val_acc:0.891]
+Epoch [11/120    avg_loss:0.328, val_acc:0.877]
+Epoch [12/120    avg_loss:0.303, val_acc:0.907]
+Epoch [13/120    avg_loss:0.280, val_acc:0.898]
+Epoch [14/120    avg_loss:0.258, val_acc:0.344]
+Epoch [15/120    avg_loss:0.364, val_acc:0.832]
+Epoch [16/120    avg_loss:0.303, val_acc:0.895]
+Epoch [17/120    avg_loss:0.224, val_acc:0.918]
+Epoch [18/120    avg_loss:0.181, val_acc:0.914]
+Epoch [19/120    avg_loss:0.592, val_acc:0.804]
+Epoch [20/120    avg_loss:0.555, val_acc:0.652]
+Epoch [21/120    avg_loss:0.461, val_acc:0.866]
+Epoch [22/120    avg_loss:0.346, val_acc:0.882]
+Epoch [23/120    avg_loss:0.320, val_acc:0.889]
+Epoch [24/120    avg_loss:0.251, val_acc:0.910]
+Epoch [25/120    avg_loss:0.266, val_acc:0.882]
+Epoch [26/120    avg_loss:0.366, val_acc:0.371]
+Epoch [27/120    avg_loss:0.936, val_acc:0.454]
+Epoch [28/120    avg_loss:0.804, val_acc:0.536]
+Epoch [29/120    avg_loss:0.759, val_acc:0.567]
+Epoch [30/120    avg_loss:0.697, val_acc:0.650]
+Epoch [31/120    avg_loss:0.665, val_acc:0.678]
+Epoch [32/120    avg_loss:0.651, val_acc:0.681]
+Epoch [33/120    avg_loss:0.647, val_acc:0.675]
+Epoch [34/120    avg_loss:0.634, val_acc:0.675]
+Epoch [35/120    avg_loss:0.626, val_acc:0.685]
+Epoch [36/120    avg_loss:0.637, val_acc:0.675]
+Epoch [37/120    avg_loss:0.608, val_acc:0.690]
+Epoch [38/120    avg_loss:0.616, val_acc:0.696]
+Epoch [39/120    avg_loss:0.609, val_acc:0.694]
+Epoch [40/120    avg_loss:0.633, val_acc:0.693]
+Epoch [41/120    avg_loss:0.662, val_acc:0.700]
+Epoch [42/120    avg_loss:0.609, val_acc:0.700]
+Epoch [43/120    avg_loss:0.624, val_acc:0.702]
+Epoch [44/120    avg_loss:0.609, val_acc:0.703]
+Epoch [45/120    avg_loss:0.623, val_acc:0.701]
+Epoch [46/120    avg_loss:0.617, val_acc:0.701]
+Epoch [47/120    avg_loss:0.612, val_acc:0.699]
+Epoch [48/120    avg_loss:0.603, val_acc:0.700]
+Epoch [49/120    avg_loss:0.619, val_acc:0.702]
+Epoch [50/120    avg_loss:0.607, val_acc:0.702]
+Epoch [51/120    avg_loss:0.594, val_acc:0.703]
+Epoch [52/120    avg_loss:0.606, val_acc:0.700]
+Epoch [53/120    avg_loss:0.585, val_acc:0.700]
+Epoch [54/120    avg_loss:0.604, val_acc:0.702]
+Epoch [55/120    avg_loss:0.604, val_acc:0.704]
+Epoch [56/120    avg_loss:0.599, val_acc:0.705]
+Epoch [57/120    avg_loss:0.605, val_acc:0.704]
+Epoch [58/120    avg_loss:0.618, val_acc:0.704]
+Epoch [59/120    avg_loss:0.609, val_acc:0.704]
+Epoch [60/120    avg_loss:0.589, val_acc:0.704]
+Epoch [61/120    avg_loss:0.625, val_acc:0.704]
+Epoch [62/120    avg_loss:0.601, val_acc:0.704]
+Epoch [63/120    avg_loss:0.624, val_acc:0.704]
+Epoch [64/120    avg_loss:0.638, val_acc:0.704]
+Epoch [65/120    avg_loss:0.594, val_acc:0.704]
+Epoch [66/120    avg_loss:0.586, val_acc:0.704]
+Epoch [67/120    avg_loss:0.632, val_acc:0.704]
+Epoch [68/120    avg_loss:0.591, val_acc:0.704]
+Epoch [69/120    avg_loss:0.601, val_acc:0.704]
+Epoch [70/120    avg_loss:0.601, val_acc:0.704]
+Epoch [71/120    avg_loss:0.590, val_acc:0.704]
+Epoch [72/120    avg_loss:0.606, val_acc:0.704]
+Epoch [73/120    avg_loss:0.610, val_acc:0.704]
+Epoch [74/120    avg_loss:0.609, val_acc:0.704]
+Epoch [75/120    avg_loss:0.609, val_acc:0.704]
+Epoch [76/120    avg_loss:0.590, val_acc:0.704]
+Epoch [77/120    avg_loss:0.612, val_acc:0.704]
+Epoch [78/120    avg_loss:0.600, val_acc:0.704]
+Epoch [79/120    avg_loss:0.603, val_acc:0.704]
+Epoch [80/120    avg_loss:0.598, val_acc:0.704]
+Epoch [81/120    avg_loss:0.630, val_acc:0.704]
+Epoch [82/120    avg_loss:0.636, val_acc:0.704]
+Epoch [83/120    avg_loss:0.615, val_acc:0.704]
+Epoch [84/120    avg_loss:0.595, val_acc:0.704]
+Epoch [85/120    avg_loss:0.596, val_acc:0.704]
+Epoch [86/120    avg_loss:0.599, val_acc:0.704]
+Epoch [87/120    avg_loss:0.591, val_acc:0.704]
+Epoch [88/120    avg_loss:0.601, val_acc:0.704]
+Epoch [89/120    avg_loss:0.602, val_acc:0.704]
+Epoch [90/120    avg_loss:0.609, val_acc:0.704]
+Epoch [91/120    avg_loss:0.612, val_acc:0.704]
+Epoch [92/120    avg_loss:0.605, val_acc:0.704]
+Epoch [93/120    avg_loss:0.582, val_acc:0.704]
+Epoch [94/120    avg_loss:0.614, val_acc:0.704]
+Epoch [95/120    avg_loss:0.620, val_acc:0.704]
+Epoch [96/120    avg_loss:0.600, val_acc:0.704]
+Epoch [97/120    avg_loss:0.613, val_acc:0.704]
+Epoch [98/120    avg_loss:0.611, val_acc:0.704]
+Epoch [99/120    avg_loss:0.595, val_acc:0.704]
+Epoch [100/120    avg_loss:0.593, val_acc:0.704]
+Epoch [101/120    avg_loss:0.615, val_acc:0.704]
+Epoch [102/120    avg_loss:0.608, val_acc:0.704]
+Epoch [103/120    avg_loss:0.612, val_acc:0.704]
+Epoch [104/120    avg_loss:0.610, val_acc:0.704]
+Epoch [105/120    avg_loss:0.606, val_acc:0.704]
+Epoch [106/120    avg_loss:0.626, val_acc:0.704]
+Epoch [107/120    avg_loss:0.598, val_acc:0.704]
+Epoch [108/120    avg_loss:0.636, val_acc:0.704]
+Epoch [109/120    avg_loss:0.590, val_acc:0.704]
+Epoch [110/120    avg_loss:0.614, val_acc:0.704]
+Epoch [111/120    avg_loss:0.588, val_acc:0.704]
+Epoch [112/120    avg_loss:0.625, val_acc:0.704]
+Epoch [113/120    avg_loss:0.594, val_acc:0.704]
+Epoch [114/120    avg_loss:0.613, val_acc:0.704]
+Epoch [115/120    avg_loss:0.612, val_acc:0.704]
+Epoch [116/120    avg_loss:0.614, val_acc:0.704]
+Epoch [117/120    avg_loss:0.630, val_acc:0.704]
+Epoch [118/120    avg_loss:0.627, val_acc:0.704]
+Epoch [119/120    avg_loss:0.586, val_acc:0.704]
+Epoch [120/120    avg_loss:0.617, val_acc:0.704]
+The network training successfully!!!
+----------Training result----------
+
+Confusion matrix:
+[[    0     0     0     0     0     0     0     0     0     0]
+ [    0  3810  1560     2     4     0   578     7   331   140]
+ [    0     0 13322     0   634     0  4129     0     5     0]
+ [    0    54    10  1555     0     0    71     0   338     8]
+ [    0     7   358     0  2451     0   114     0    41     1]
+ [    0     0     0     0     0  1305     0     0     0     0]
+ [    0     0  1203   153     2     0  3363     0   157     0]
+ [    0    74    42     0     2     0     0  1137    35     0]
+ [    0   260   232    67    45     0   413     1  2553     0]
+ [    0     5     0     0    14    11     7     0     0   882]]
+
+Accuracy:
+73.21234907092763
+
+F1 scores:
+[       nan 0.71603082 0.76525835 0.81563074 0.80045722 0.99580313
+ 0.49627389 0.9338809  0.72621249 0.90461538]
+
+Kappa:
+0.6506627326111334
+creating ./logs/logs-2022-01-16PaviaU.txt
+---------------------------------------------------------------------
+-----------------------------Next run log----------------------------
+---------------------------2022-01-16:23:51--------------------------
+---------------------------------------------------------------------
+Computation on CUDA GPU device 0
+Load train_gt successfully!(PATH:../dataset/PaviaU/0.03/train_gt.npy)
+1283 samples selected for training(over 42776)
+Training Percentage:0.03
+Load train_gt successfully!(PATH:../dataset/PaviaU/0.03/test_gt.npy)
+41493 samples selected for training(over 42776)
+Running an experiment with the MMPN model, RUN [1/1]
+RUN:0
+Setting up a new session...
+Visdom successfully connected to server
+1283 samples selected for validation(over 42776)
+Running an experiment with the MMPN model
+Train dataloader:153
+Validation dataloader:153
+----------Training parameters----------
+dataset:PaviaU
+model:MMPN
+folder:../dataset/
+cuda:0
+run:1
+sampling_mode:random
+validation_percentage:0.03
+sample_nums:20
+load_data:0.03
+epoch:120
+save_epoch:5
+patch_size:9
+patch_bands:10
+reserve_bands:100
+lr:0.01
+batch_size:8
+class_balancing:True
+test_stride:1
+n_classes:10
+n_bands:100
+ignored_labels:[0]
+device:cuda:0
+weights:tensor([0.0000, 0.4623, 0.1646, 1.4603, 1.0000, 2.3000, 0.6093, 2.3000, 0.8288,
+        3.2857], device='cuda:0')
+scheduler:<torch.optim.lr_scheduler.ReduceLROnPlateau object at 0x7fb60cb75b38>
+supervision:full
+center_pixel:True
+Network :
+Number of parameter: 12410==>0.01M
+----------Training process----------
+Epoch [1/120    avg_loss:1.969, val_acc:0.549]
+Epoch [2/120    avg_loss:1.348, val_acc:0.664]
+Epoch [3/120    avg_loss:0.892, val_acc:0.643]
+Epoch [4/120    avg_loss:0.679, val_acc:0.724]
+Epoch [5/120    avg_loss:0.541, val_acc:0.697]
+Epoch [6/120    avg_loss:0.468, val_acc:0.701]
+Epoch [7/120    avg_loss:0.419, val_acc:0.827]
+Epoch [8/120    avg_loss:0.391, val_acc:0.762]
+Epoch [9/120    avg_loss:0.346, val_acc:0.757]
+Epoch [10/120    avg_loss:0.339, val_acc:0.837]
+Epoch [11/120    avg_loss:0.262, val_acc:0.895]
+Epoch [12/120    avg_loss:0.249, val_acc:0.843]
+Epoch [13/120    avg_loss:0.212, val_acc:0.911]
+Epoch [14/120    avg_loss:0.236, val_acc:0.794]
+Epoch [15/120    avg_loss:0.195, val_acc:0.910]
+Epoch [16/120    avg_loss:0.199, val_acc:0.881]
+Epoch [17/120    avg_loss:0.152, val_acc:0.922]
+Epoch [18/120    avg_loss:0.167, val_acc:0.926]
+Epoch [19/120    avg_loss:0.159, val_acc:0.935]
+Epoch [20/120    avg_loss:0.154, val_acc:0.912]
+Epoch [21/120    avg_loss:0.122, val_acc:0.911]
+Epoch [22/120    avg_loss:0.108, val_acc:0.907]
+Epoch [23/120    avg_loss:0.130, val_acc:0.938]
+Epoch [24/120    avg_loss:0.096, val_acc:0.953]
+Epoch [25/120    avg_loss:0.125, val_acc:0.939]
+Epoch [26/120    avg_loss:0.102, val_acc:0.932]
+Epoch [27/120    avg_loss:0.081, val_acc:0.915]
+Epoch [28/120    avg_loss:0.086, val_acc:0.935]
+Epoch [29/120    avg_loss:0.073, val_acc:0.962]
+Epoch [30/120    avg_loss:0.059, val_acc:0.947]
+Epoch [31/120    avg_loss:0.141, val_acc:0.905]
+Epoch [32/120    avg_loss:0.167, val_acc:0.893]
+Epoch [33/120    avg_loss:0.146, val_acc:0.900]
+Epoch [34/120    avg_loss:0.127, val_acc:0.933]
+Epoch [35/120    avg_loss:0.082, val_acc:0.968]
+Epoch [36/120    avg_loss:0.049, val_acc:0.965]
+Epoch [37/120    avg_loss:0.050, val_acc:0.951]
+Epoch [38/120    avg_loss:0.059, val_acc:0.959]
+Epoch [39/120    avg_loss:0.047, val_acc:0.965]
+Epoch [40/120    avg_loss:0.040, val_acc:0.970]
+Epoch [41/120    avg_loss:0.052, val_acc:0.972]
+Epoch [42/120    avg_loss:0.051, val_acc:0.951]
+Epoch [43/120    avg_loss:0.023, val_acc:0.963]
+Epoch [44/120    avg_loss:0.041, val_acc:0.970]
+Epoch [45/120    avg_loss:0.037, val_acc:0.962]
+Epoch [46/120    avg_loss:0.022, val_acc:0.971]
+Epoch [47/120    avg_loss:0.025, val_acc:0.975]
+Epoch [48/120    avg_loss:0.027, val_acc:0.965]
+Epoch [49/120    avg_loss:0.042, val_acc:0.977]
+Epoch [50/120    avg_loss:0.027, val_acc:0.973]
+Epoch [51/120    avg_loss:0.037, val_acc:0.975]
+Epoch [52/120    avg_loss:0.038, val_acc:0.965]
+Epoch [53/120    avg_loss:0.017, val_acc:0.976]
+Epoch [54/120    avg_loss:0.015, val_acc:0.973]
+Epoch [55/120    avg_loss:0.038, val_acc:0.970]
+Epoch [56/120    avg_loss:0.028, val_acc:0.970]
+Epoch [57/120    avg_loss:0.014, val_acc:0.979]
+Epoch [58/120    avg_loss:0.038, val_acc:0.952]
+Epoch [59/120    avg_loss:0.136, val_acc:0.934]
+Epoch [60/120    avg_loss:0.055, val_acc:0.973]
+Epoch [61/120    avg_loss:0.054, val_acc:0.971]
+Epoch [62/120    avg_loss:0.043, val_acc:0.956]
+Epoch [63/120    avg_loss:0.031, val_acc:0.977]
+Epoch [64/120    avg_loss:0.037, val_acc:0.948]
+Epoch [65/120    avg_loss:0.123, val_acc:0.952]
+Epoch [66/120    avg_loss:0.051, val_acc:0.970]
+Epoch [67/120    avg_loss:0.039, val_acc:0.968]
+Epoch [68/120    avg_loss:0.032, val_acc:0.947]
+Epoch [69/120    avg_loss:0.019, val_acc:0.976]
+Epoch [70/120    avg_loss:0.024, val_acc:0.975]
+Epoch [71/120    avg_loss:0.021, val_acc:0.981]
+Epoch [72/120    avg_loss:0.018, val_acc:0.984]
+Epoch [73/120    avg_loss:0.016, val_acc:0.983]
+Epoch [74/120    avg_loss:0.014, val_acc:0.983]
+Epoch [75/120    avg_loss:0.010, val_acc:0.981]
+Epoch [76/120    avg_loss:0.011, val_acc:0.983]
+Epoch [77/120    avg_loss:0.011, val_acc:0.983]
+Epoch [78/120    avg_loss:0.011, val_acc:0.981]
+Epoch [79/120    avg_loss:0.007, val_acc:0.983]
+Epoch [80/120    avg_loss:0.009, val_acc:0.981]
+Epoch [81/120    avg_loss:0.011, val_acc:0.981]
+Epoch [82/120    avg_loss:0.008, val_acc:0.981]
+Epoch [83/120    avg_loss:0.011, val_acc:0.981]
+Epoch [84/120    avg_loss:0.008, val_acc:0.980]
+Epoch [85/120    avg_loss:0.009, val_acc:0.982]
+Epoch [86/120    avg_loss:0.010, val_acc:0.983]
+Epoch [87/120    avg_loss:0.008, val_acc:0.983]
+Epoch [88/120    avg_loss:0.009, val_acc:0.983]
+Epoch [89/120    avg_loss:0.009, val_acc:0.983]
+Epoch [90/120    avg_loss:0.009, val_acc:0.982]
+Epoch [91/120    avg_loss:0.007, val_acc:0.982]
+Epoch [92/120    avg_loss:0.007, val_acc:0.983]
+Epoch [93/120    avg_loss:0.011, val_acc:0.983]
+Epoch [94/120    avg_loss:0.007, val_acc:0.982]
+Epoch [95/120    avg_loss:0.011, val_acc:0.982]
+Epoch [96/120    avg_loss:0.007, val_acc:0.982]
+Epoch [97/120    avg_loss:0.009, val_acc:0.982]
+Epoch [98/120    avg_loss:0.008, val_acc:0.982]
+Epoch [99/120    avg_loss:0.007, val_acc:0.982]
+Epoch [100/120    avg_loss:0.007, val_acc:0.982]
+Epoch [101/120    avg_loss:0.008, val_acc:0.981]
+Epoch [102/120    avg_loss:0.010, val_acc:0.982]
+Epoch [103/120    avg_loss:0.008, val_acc:0.981]
+Epoch [104/120    avg_loss:0.007, val_acc:0.981]
+Epoch [105/120    avg_loss:0.007, val_acc:0.981]
+Epoch [106/120    avg_loss:0.007, val_acc:0.981]
+Epoch [107/120    avg_loss:0.011, val_acc:0.981]
+Epoch [108/120    avg_loss:0.008, val_acc:0.981]
+Epoch [109/120    avg_loss:0.007, val_acc:0.981]
+Epoch [110/120    avg_loss:0.008, val_acc:0.981]
+Epoch [111/120    avg_loss:0.010, val_acc:0.981]
+Epoch [112/120    avg_loss:0.010, val_acc:0.981]
+Epoch [113/120    avg_loss:0.008, val_acc:0.981]
+Epoch [114/120    avg_loss:0.007, val_acc:0.981]
+Epoch [115/120    avg_loss:0.009, val_acc:0.981]
+Epoch [116/120    avg_loss:0.008, val_acc:0.981]
+Epoch [117/120    avg_loss:0.008, val_acc:0.981]
+Epoch [118/120    avg_loss:0.007, val_acc:0.981]
+Epoch [119/120    avg_loss:0.011, val_acc:0.981]
+Epoch [120/120    avg_loss:0.010, val_acc:0.981]
+The network training successfully!!!
+----------Training result----------
+
+Confusion matrix:
+[[    0     0     0     0     0     0     0     0     0     0]
+ [    0  6384     0     0     0     0     0    46     0     2]
+ [    0     1 17988     0    89     0    10     0     2     0]
+ [    0    32     0  1902     0     0     0     0   102     0]
+ [    0    38     6     2  2908     0    14     0     1     3]
+ [    0     0     0     0     0  1305     0     0     0     0]
+ [    0     0    59     0     0     0  4819     0     0     0]
+ [    0    21     0     0     0     0     0  1269     0     0]
+ [    0   163     0    60    10     0     2     0  3336     0]
+ [    0     1     0     0    14    40     0     0     0   864]]
+
+Accuracy:
+98.2695876412889
+
+F1 scores:
+[       nan 0.97674419 0.99537946 0.951      0.97046554 0.98490566
+ 0.99125784 0.97428023 0.95151169 0.96644295]
+
+Kappa:
+0.977069564014755
+creating ./logs/logs-2022-01-16PaviaU.txt
+---------------------------------------------------------------------
+-----------------------------Next run log----------------------------
+---------------------------2022-01-16:23:58--------------------------
+---------------------------------------------------------------------
+Computation on CUDA GPU device 0
+Load train_gt successfully!(PATH:../dataset/PaviaU/0.03/train_gt.npy)
+1283 samples selected for training(over 42776)
+Training Percentage:0.03
+Load train_gt successfully!(PATH:../dataset/PaviaU/0.03/test_gt.npy)
+41493 samples selected for training(over 42776)
+Running an experiment with the MMPN model, RUN [1/1]
+RUN:0
+Setting up a new session...
+Visdom successfully connected to server
+1283 samples selected for validation(over 42776)
+Running an experiment with the MMPN model
+Train dataloader:153
+Validation dataloader:153
+----------Training parameters----------
+dataset:PaviaU
+model:MMPN
+folder:../dataset/
+cuda:0
+run:1
+sampling_mode:random
+validation_percentage:0.03
+sample_nums:20
+load_data:0.03
+epoch:120
+save_epoch:5
+patch_size:9
+patch_bands:10
+reserve_bands:100
+lr:0.01
+batch_size:8
+class_balancing:True
+test_stride:1
+n_classes:10
+n_bands:100
+ignored_labels:[0]
+device:cuda:0
+weights:tensor([0.0000, 0.4623, 0.1646, 1.4603, 1.0000, 2.3000, 0.6093, 2.3000, 0.8288,
+        3.2857], device='cuda:0')
+scheduler:<torch.optim.lr_scheduler.ReduceLROnPlateau object at 0x7f8fdad37be0>
+supervision:full
+center_pixel:True
+Network :
+Number of parameter: 12410==>0.01M
+----------Training process----------
+Epoch [1/120    avg_loss:1.995, val_acc:0.297]
+Epoch [2/120    avg_loss:1.459, val_acc:0.464]
+Epoch [3/120    avg_loss:1.078, val_acc:0.733]
+Epoch [4/120    avg_loss:0.740, val_acc:0.605]
+Epoch [5/120    avg_loss:0.603, val_acc:0.660]
+Epoch [6/120    avg_loss:0.529, val_acc:0.764]
+Epoch [7/120    avg_loss:0.454, val_acc:0.782]
+Epoch [8/120    avg_loss:0.386, val_acc:0.828]
+Epoch [9/120    avg_loss:0.355, val_acc:0.837]
+Epoch [10/120    avg_loss:0.306, val_acc:0.828]
+Epoch [11/120    avg_loss:0.276, val_acc:0.873]
+Epoch [12/120    avg_loss:0.237, val_acc:0.857]
+Epoch [13/120    avg_loss:0.252, val_acc:0.850]
+Epoch [14/120    avg_loss:0.270, val_acc:0.854]
+Epoch [15/120    avg_loss:0.254, val_acc:0.915]
+Epoch [16/120    avg_loss:0.179, val_acc:0.900]
+Epoch [17/120    avg_loss:0.190, val_acc:0.919]
+Epoch [18/120    avg_loss:0.150, val_acc:0.931]
+Epoch [19/120    avg_loss:0.219, val_acc:0.939]
+Epoch [20/120    avg_loss:0.154, val_acc:0.943]
+Epoch [21/120    avg_loss:0.163, val_acc:0.920]
+Epoch [22/120    avg_loss:0.131, val_acc:0.949]
+Epoch [23/120    avg_loss:0.103, val_acc:0.947]
+Epoch [24/120    avg_loss:0.117, val_acc:0.928]
+Epoch [25/120    avg_loss:0.083, val_acc:0.949]
+Epoch [26/120    avg_loss:0.098, val_acc:0.940]
+Epoch [27/120    avg_loss:0.116, val_acc:0.939]
+Epoch [28/120    avg_loss:0.381, val_acc:0.655]
+Epoch [29/120    avg_loss:0.482, val_acc:0.757]
+Epoch [30/120    avg_loss:0.291, val_acc:0.826]
+Epoch [31/120    avg_loss:0.222, val_acc:0.887]
+Epoch [32/120    avg_loss:0.182, val_acc:0.864]
+Epoch [33/120    avg_loss:0.142, val_acc:0.896]
+Epoch [34/120    avg_loss:0.125, val_acc:0.919]
+Epoch [35/120    avg_loss:0.155, val_acc:0.924]
+Epoch [36/120    avg_loss:0.159, val_acc:0.945]
+Epoch [37/120    avg_loss:0.118, val_acc:0.951]
+Epoch [38/120    avg_loss:0.121, val_acc:0.956]
+Epoch [39/120    avg_loss:0.114, val_acc:0.932]
+Epoch [40/120    avg_loss:0.091, val_acc:0.921]
+Epoch [41/120    avg_loss:0.078, val_acc:0.897]
+Epoch [42/120    avg_loss:0.084, val_acc:0.941]
+Epoch [43/120    avg_loss:0.083, val_acc:0.948]
+Epoch [44/120    avg_loss:0.056, val_acc:0.963]
+Epoch [45/120    avg_loss:0.105, val_acc:0.928]
+Epoch [46/120    avg_loss:0.065, val_acc:0.956]
+Epoch [47/120    avg_loss:0.059, val_acc:0.944]
+Epoch [48/120    avg_loss:0.063, val_acc:0.968]
+Epoch [49/120    avg_loss:0.159, val_acc:0.932]
+Epoch [50/120    avg_loss:0.108, val_acc:0.947]
+Epoch [51/120    avg_loss:0.086, val_acc:0.951]
+Epoch [52/120    avg_loss:0.101, val_acc:0.956]
+Epoch [53/120    avg_loss:0.057, val_acc:0.948]
+Epoch [54/120    avg_loss:0.049, val_acc:0.963]
+Epoch [55/120    avg_loss:0.055, val_acc:0.953]
+Epoch [56/120    avg_loss:0.051, val_acc:0.960]
+Epoch [57/120    avg_loss:0.058, val_acc:0.963]
+Epoch [58/120    avg_loss:0.057, val_acc:0.972]
+Epoch [59/120    avg_loss:0.034, val_acc:0.964]
+Epoch [60/120    avg_loss:0.075, val_acc:0.938]
+Epoch [61/120    avg_loss:0.052, val_acc:0.953]
+Epoch [62/120    avg_loss:0.077, val_acc:0.961]
+Epoch [63/120    avg_loss:0.023, val_acc:0.978]
+Epoch [64/120    avg_loss:0.034, val_acc:0.961]
+Epoch [65/120    avg_loss:0.044, val_acc:0.977]
+Epoch [66/120    avg_loss:0.021, val_acc:0.979]
+Epoch [67/120    avg_loss:0.047, val_acc:0.975]
+Epoch [68/120    avg_loss:0.024, val_acc:0.973]
+Epoch [69/120    avg_loss:0.037, val_acc:0.970]
+Epoch [70/120    avg_loss:0.034, val_acc:0.975]
+Epoch [71/120    avg_loss:0.038, val_acc:0.980]
+Epoch [72/120    avg_loss:0.023, val_acc:0.972]
+Epoch [73/120    avg_loss:0.019, val_acc:0.981]
+Epoch [74/120    avg_loss:0.026, val_acc:0.972]
+Epoch [75/120    avg_loss:0.025, val_acc:0.946]
+Epoch [76/120    avg_loss:0.019, val_acc:0.981]
+Epoch [77/120    avg_loss:0.031, val_acc:0.975]
+Epoch [78/120    avg_loss:0.025, val_acc:0.976]
+Epoch [79/120    avg_loss:0.022, val_acc:0.975]
+Epoch [80/120    avg_loss:0.035, val_acc:0.973]
+Epoch [81/120    avg_loss:0.032, val_acc:0.978]
+Epoch [82/120    avg_loss:0.014, val_acc:0.971]
+Epoch [83/120    avg_loss:0.011, val_acc:0.977]
+Epoch [84/120    avg_loss:0.016, val_acc:0.968]
+Epoch [85/120    avg_loss:0.016, val_acc:0.974]
+Epoch [86/120    avg_loss:0.009, val_acc:0.980]
+Epoch [87/120    avg_loss:0.010, val_acc:0.981]
+Epoch [88/120    avg_loss:0.011, val_acc:0.979]
+Epoch [89/120    avg_loss:0.008, val_acc:0.983]
+Epoch [90/120    avg_loss:0.005, val_acc:0.929]
+Epoch [91/120    avg_loss:0.030, val_acc:0.977]
+Epoch [92/120    avg_loss:0.011, val_acc:0.982]
+Epoch [93/120    avg_loss:0.007, val_acc:0.982]
+Epoch [94/120    avg_loss:0.011, val_acc:0.972]
+Epoch [95/120    avg_loss:0.427, val_acc:0.480]
+Epoch [96/120    avg_loss:0.951, val_acc:0.575]
+Epoch [97/120    avg_loss:0.776, val_acc:0.597]
+Epoch [98/120    avg_loss:0.721, val_acc:0.664]
+Epoch [99/120    avg_loss:0.668, val_acc:0.674]
+Epoch [100/120    avg_loss:0.649, val_acc:0.700]
+Epoch [101/120    avg_loss:0.626, val_acc:0.719]
+Epoch [102/120    avg_loss:0.591, val_acc:0.711]
+Epoch [103/120    avg_loss:0.577, val_acc:0.729]
+Epoch [104/120    avg_loss:0.535, val_acc:0.728]
+Epoch [105/120    avg_loss:0.552, val_acc:0.732]
+Epoch [106/120    avg_loss:0.521, val_acc:0.729]
+Epoch [107/120    avg_loss:0.529, val_acc:0.730]
+Epoch [108/120    avg_loss:0.509, val_acc:0.728]
+Epoch [109/120    avg_loss:0.510, val_acc:0.729]
+Epoch [110/120    avg_loss:0.541, val_acc:0.735]
+Epoch [111/120    avg_loss:0.512, val_acc:0.732]
+Epoch [112/120    avg_loss:0.528, val_acc:0.726]
+Epoch [113/120    avg_loss:0.524, val_acc:0.732]
+Epoch [114/120    avg_loss:0.513, val_acc:0.740]
+Epoch [115/120    avg_loss:0.522, val_acc:0.745]
+Epoch [116/120    avg_loss:0.511, val_acc:0.744]
+Epoch [117/120    avg_loss:0.507, val_acc:0.744]
+Epoch [118/120    avg_loss:0.497, val_acc:0.744]
+Epoch [119/120    avg_loss:0.514, val_acc:0.745]
+Epoch [120/120    avg_loss:0.493, val_acc:0.745]
+The network training successfully!!!
+----------Training result----------
+
+Confusion matrix:
+[[    0     0     0     0     0     0     0     0     0     0]
+ [    0  4497  1139     5    46     0   385    25   207   128]
+ [    0     0 14665     0   860     0  2562     0     3     0]
+ [    0    30    16  1641     3     0    22     0   316     8]
+ [    0     3   351     0  2526     0    87     0     4     1]
+ [    0     0     0     0     0  1305     0     0     0     0]
+ [    0     0  1719   159     1     0  2848     0   151     0]
+ [    0    87     8     0     0     0     5  1146    44     0]
+ [    0   201   321    66    27     0   202     2  2752     0]
+ [    0    33     0     0     0    23     1     0     0   862]]
+
+Accuracy:
+77.70467307738654
+
+F1 scores:
+[       nan 0.79712842 0.8077887  0.84003071 0.78508159 0.99126472
+ 0.51828935 0.93057247 0.78093076 0.89885297]
+
+Kappa:
+0.7048178289369389

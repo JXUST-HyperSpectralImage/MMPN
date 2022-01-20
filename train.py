@@ -70,9 +70,9 @@ def train(logger, net, optimizer, criterion, train_loader, epoch, save_epoch, sc
         elif scheduler is not None:
             scheduler.step()
         # 在控制台打印信息
-        tqdm.write(f"Epoch [{e}/{epoch}    avg_loss:{avg_loss:.2f}, val_acc:{val_acc:.2f}]")
+        tqdm.write(f"Epoch [{e}/{epoch}    avg_loss:{avg_loss:.3f}, val_acc:{val_acc:.3f}]")
         # 在日志打印信息
-        logger.debug(f"Epoch [{e}/{epoch}    avg_loss:{avg_loss:.2f}, val_acc:{val_acc:.2f}]")
+        logger.debug(f"Epoch [{e}/{epoch}    avg_loss:{avg_loss:.3f}, val_acc:{val_acc:.3f}]")
         # 保存断点(如果不是必要情况下不用保存，保存会降低模型训练速度)
         if e%save_epoch == 0:
 #            update = None if loss_win is None else 'append'
@@ -135,27 +135,6 @@ def val(net, data_loader, device='cpu', supervision='full'):
     return accuracy / total
 
 
-#def test(net, data_loader, data_win_size, device='cpu'):
-#    accuracy, total = 0., 0.
-#    ignored_labels = data_loader.dataset.ignored_labels
-#    probs = np.zeros(data_win_size)
-#    for batch_idx, (data, target, x, y) in enumerate(data_loader):
-#        with torch.no_grad():
-#            # Load the data into the GPU if required
-#            data = data.to(device)
-#            output = net(data)
-#            _, output = torch.max(output, dim=1)
-#            # target = target - 1
-#            for out, label in zip(output.view(-1), target.view(-1)):
-#                if out.item() in ignored_labels:
-#                    continue
-#                else:
-#                    accuracy += out.item() == label.item()
-#                    total += 1
-#                probs[x, y] += out.item()
-#    return probs, accuracy / total
-
-
 def test(net, img, hyperparams):
     """
     Test a model on a specific image
@@ -164,39 +143,46 @@ def test(net, img, hyperparams):
     patch_size = hyperparams['patch_size']
     center_pixel = hyperparams['center_pixel']
     batch_size, device = hyperparams['batch_size'], hyperparams['device']
+    n_classes = hyperparams['n_classes']
 
     kwargs = {'step': hyperparams['test_stride'], 'window_size': (patch_size, patch_size)}
     probs = np.zeros(img.shape[:2])
-
     img = np.pad(img, ((patch_size // 2, patch_size // 2), (patch_size // 2, patch_size // 2), (0, 0)), 'reflect')
-    # 统计生成窗口的数量 // bath_size = 迭代次数
     iterations = count_sliding_window(img, **kwargs) // batch_size
-    # grouper生成batch_size数量的窗口
-    indices_list = []
     for batch in tqdm(grouper(batch_size, sliding_window(img, **kwargs)),
                       # ncols=iterations,
                       total=(iterations),
                       desc="Inference on the image"
                       ):
         with torch.no_grad():
-            data = [b[0] for b in batch]  # 每次取整个窗口数据
-            data = np.asarray(np.copy(data).transpose((0, 3, 1, 2)), dtype='float32')
-            data = torch.from_numpy(data)
-            data = torch.squeeze(data)
+            if patch_size == 1:
+                data = [b[0][0, 0] for b in batch]
+                data = np.copy(data)
+                data = torch.from_numpy(data)
+            else:
+                data = [b[0] for b in batch]
+                data = np.copy(data)
+                data = data.transpose(0, 3, 1, 2)  # (N, H, W, C)-->（N, C, H, W)
+                data = torch.from_numpy(data)
+                if hyperparams['patch_size']>1:
+                    data = data.unsqueeze(1)
+
+            indices = [b[1:] for b in batch]
             data = data.to(device)
             output = net(data)
             if isinstance(output, tuple):
                 output = output[0]
             _, output = torch.max(output, dim=1)
-            indices = [b[1:] for b in batch]
-            output = output.to('cpu').numpy()            
-            for (x, y, _, _), out in zip(indices, output):
-                indices_list.append([x, y])
-                probs[x, y] += out
-    filename = open('indices_list.txt', 'w')
-    for value in indices_list:
-        filename.write(str(value))
-    filename.close()
+            output = output.to('cpu')
+            if patch_size == 1 or center_pixel:
+                output = output.numpy()
+            else:
+                output = np.transpose(output.numpy(), (0, 2, 3, 1))
+            for (x, y, w, h), out in zip(indices, output):
+                if center_pixel:
+                    probs[x, y] += out
+                else:
+                    probs[x:x + w, y:y + h] += out
     return probs
 
 
